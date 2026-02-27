@@ -121,6 +121,17 @@ PlasmoidItem {
         root.expanded = false
     }
 
+    function editConfig(path) {
+        launcher.connectSource("xdg-open " + path.replace("~", "$HOME"))
+        root.expanded = false
+    }
+
+    function setupPasswordlessLogin(hostAlias) {
+        var cmd = plasmoid.configuration.terminalCommand + " ssh-copy-id " + hostAlias
+        launcher.connectSource(cmd)
+        root.expanded = false
+    }
+
     function copyToClipboard(text) {
         clipboardSource.connectSource("qdbus6 org.kde.klipper /klipper setClipboardContents " + Qt.btoa(text))
     }

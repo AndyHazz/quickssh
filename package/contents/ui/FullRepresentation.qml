@@ -102,6 +102,18 @@ PlasmaExtras.Representation {
                     }
                 }
 
+                QQC2.ToolButton {
+                    icon.name: "document-edit"
+                    text: i18n("Edit SSH Config")
+                    display: QQC2.AbstractButton.IconOnly
+                    QQC2.ToolTip.text: i18n("Edit SSH config file...")
+                    QQC2.ToolTip.visible: hovered
+                    onClicked: {
+                        var path = plasmoid.configuration.sshConfigPath || "~/.ssh/config"
+                        root.editConfig(path)
+                    }
+                }
+
                 Item { Layout.fillWidth: true }
 
                 QQC2.ToolButton {

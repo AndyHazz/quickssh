@@ -110,5 +110,13 @@ QQC2.ItemDelegate {
             icon.name: "edit-copy"
             onTriggered: root.copyToClipboard(itemData.hostname)
         }
+
+        QQC2.MenuSeparator {}
+
+        QQC2.MenuItem {
+            text: i18n("Setup Passwordless Login...")
+            icon.name: "dialog-password"
+            onTriggered: root.setupPasswordlessLogin(itemData.host)
+        }
     }
 }
