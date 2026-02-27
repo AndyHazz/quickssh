@@ -51,6 +51,12 @@ PlasmaExtras.Representation {
                         hostListView.forceActiveFocus()
                     }
                 }
+                Keys.onTabPressed: {
+                    if (hostListView.count > 0) {
+                        hostListView.currentIndex = hostListView.nextHostIndex(0)
+                        hostListView.forceActiveFocus()
+                    }
+                }
             }
         }
     }
