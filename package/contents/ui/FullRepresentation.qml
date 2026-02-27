@@ -18,6 +18,8 @@ PlasmaExtras.Representation {
     collapseMarginsHint: true
 
     header: PlasmaExtras.PlasmoidHeading {
+        visible: plasmoid.configuration.enableSearch
+
         RowLayout {
             anchors.fill: parent
             spacing: Kirigami.Units.smallSpacing
@@ -45,7 +47,9 @@ PlasmaExtras.Representation {
                 root.loadConfig()
                 root.checkAllStatus()
                 searchField.text = ""
-                searchField.forceActiveFocus()
+                if (plasmoid.configuration.enableSearch) {
+                    searchField.forceActiveFocus()
+                }
             }
         }
     }
@@ -115,6 +119,8 @@ PlasmaExtras.Representation {
     function buildFilteredModel() {
         var items = []
         var search = root.searchText.toLowerCase()
+        var hideOffline = plasmoid.configuration.hideUnreachable
+        var grouping = plasmoid.configuration.enableGrouping
 
         for (var i = 0; i < root.groupedHosts.length; i++) {
             var group = root.groupedHosts[i]
@@ -122,36 +128,38 @@ PlasmaExtras.Representation {
 
             for (var j = 0; j < group.hosts.length; j++) {
                 var h = group.hosts[j]
-                if (search === "" ||
-                    h.host.toLowerCase().indexOf(search) >= 0 ||
-                    h.hostname.toLowerCase().indexOf(search) >= 0 ||
-                    h.user.toLowerCase().indexOf(search) >= 0) {
-                    filteredHosts.push(h)
-                }
+                if (hideOffline && h.status === "offline") continue
+                if (search !== "" &&
+                    h.host.toLowerCase().indexOf(search) < 0 &&
+                    h.hostname.toLowerCase().indexOf(search) < 0 &&
+                    h.user.toLowerCase().indexOf(search) < 0) continue
+                filteredHosts.push(h)
             }
 
             if (filteredHosts.length > 0) {
-                var groupName = group.name || i18n("Ungrouped")
-                var collapsed = root.isGroupCollapsed(groupName)
+                if (grouping) {
+                    var groupName = group.name || i18n("Ungrouped")
+                    var collapsed = root.isGroupCollapsed(groupName)
 
-                items.push({
-                    isHeader: true,
-                    groupName: groupName,
-                    hostCount: filteredHosts.length,
-                    collapsed: collapsed
-                })
+                    items.push({
+                        isHeader: true,
+                        groupName: groupName,
+                        hostCount: filteredHosts.length,
+                        collapsed: collapsed
+                    })
 
-                if (!collapsed) {
-                    for (var k = 0; k < filteredHosts.length; k++) {
-                        items.push({
-                            isHeader: false,
-                            host: filteredHosts[k].host,
-                            hostname: filteredHosts[k].hostname,
-                            user: filteredHosts[k].user,
-                            icon: filteredHosts[k].icon,
-                            status: filteredHosts[k].status
-                        })
-                    }
+                    if (collapsed) continue
+                }
+
+                for (var k = 0; k < filteredHosts.length; k++) {
+                    items.push({
+                        isHeader: false,
+                        host: filteredHosts[k].host,
+                        hostname: filteredHosts[k].hostname,
+                        user: filteredHosts[k].user,
+                        icon: filteredHosts[k].icon,
+                        status: filteredHosts[k].status
+                    })
                 }
             }
         }

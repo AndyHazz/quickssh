@@ -20,6 +20,15 @@
     <entry name="showBadge" type="Bool">
       <default>false</default>
     </entry>
+    <entry name="hideUnreachable" type="Bool">
+      <default>false</default>
+    </entry>
+    <entry name="enableGrouping" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="enableSearch" type="Bool">
+      <default>true</default>
+    </entry>
     <entry name="collapsedGroups" type="String">
       <default></default>
     </entry>

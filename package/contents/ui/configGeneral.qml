@@ -12,6 +12,9 @@ KCMUtils.SimpleKCM {
     property alias cfg_showStatus: showStatusCheck.checked
     property alias cfg_pingTimeout: pingTimeoutSpin.value
     property alias cfg_showBadge: showBadgeCheck.checked
+    property alias cfg_hideUnreachable: hideUnreachableCheck.checked
+    property alias cfg_enableGrouping: enableGroupingCheck.checked
+    property alias cfg_enableSearch: enableSearchCheck.checked
 
     Kirigami.FormLayout {
         anchors.left: parent.left
@@ -62,9 +65,25 @@ KCMUtils.SimpleKCM {
             enabled: showStatusCheck.checked
         }
 
+        QQC2.CheckBox {
+            id: hideUnreachableCheck
+            Kirigami.FormData.label: i18n("Hide unreachable hosts:")
+            enabled: showStatusCheck.checked
+        }
+
         Kirigami.Separator {
             Kirigami.FormData.isSection: true
             Kirigami.FormData.label: i18n("Appearance")
+        }
+
+        QQC2.CheckBox {
+            id: enableSearchCheck
+            Kirigami.FormData.label: i18n("Show search bar:")
+        }
+
+        QQC2.CheckBox {
+            id: enableGroupingCheck
+            Kirigami.FormData.label: i18n("Group hosts:")
         }
 
         QQC2.CheckBox {
