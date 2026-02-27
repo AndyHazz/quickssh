@@ -12,7 +12,7 @@ QQC2.ItemDelegate {
     topPadding: Kirigami.Units.smallSpacing
     bottomPadding: Kirigami.Units.smallSpacing
 
-    onClicked: root.connectToHost(itemData.host)
+    onClicked: root.connectToHost(itemData.discovered ? itemData.hostname : itemData.host)
 
     contentItem: RowLayout {
         spacing: Kirigami.Units.mediumSpacing

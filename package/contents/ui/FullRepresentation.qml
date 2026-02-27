@@ -64,7 +64,8 @@ PlasmaExtras.Representation {
                     } else if (hostListView.count > 0) {
                         var idx = hostListView.nextHostIndex(0)
                         if (idx >= 0) {
-                            root.connectToHost(hostListView.model[idx].host)
+                            var first = hostListView.model[idx]
+                            root.connectToHost(first.discovered ? first.hostname : first.host)
                         }
                     }
                 }
@@ -85,6 +86,7 @@ PlasmaExtras.Representation {
             if (root.expanded) {
                 root.loadConfig()
                 root.checkAllStatus()
+                root.discoverNetworkHosts()
                 searchField.text = ""
                 fullRoot.refreshModel(true)
                 if (plasmoid.configuration.enableSearch) {
@@ -98,6 +100,7 @@ PlasmaExtras.Representation {
         function onGroupedHostsChanged() { fullRoot.refreshModel(false) }
         function onFavoritesChanged() { fullRoot.refreshModel(false) }
         function onCollapsedGroupsChanged() { fullRoot.refreshModel(false) }
+        function onDiscoveredHostsChanged() { fullRoot.refreshModel(false) }
     }
 
     ColumnLayout {
@@ -143,7 +146,7 @@ PlasmaExtras.Representation {
                     if (currentIndex >= 0 && currentIndex < count) {
                         var item = model[currentIndex]
                         if (item && !item.isHeader) {
-                            root.connectToHost(item.host)
+                            root.connectToHost(item.discovered ? item.hostname : item.host)
                         }
                     }
                 }
@@ -254,7 +257,8 @@ PlasmaExtras.Representation {
                         hostname: filteredHosts[k].hostname,
                         user: filteredHosts[k].user,
                         icon: filteredHosts[k].icon,
-                        status: filteredHosts[k].status
+                        status: filteredHosts[k].status,
+                        discovered: false
                     })
                 }
             }
@@ -277,8 +281,56 @@ PlasmaExtras.Representation {
                     hostname: favoriteHosts[m].hostname,
                     user: favoriteHosts[m].user,
                     icon: favoriteHosts[m].icon,
-                    status: favoriteHosts[m].status
+                    status: favoriteHosts[m].status,
+                    discovered: false
                 })
+            }
+        }
+
+        // Append discovered network hosts
+        if (plasmoid.configuration.discoverHosts && root.discoveredHosts.length > 0) {
+            var discoveredFiltered = []
+            for (var d = 0; d < root.discoveredHosts.length; d++) {
+                var dh = root.discoveredHosts[d]
+                if (search !== "" &&
+                    dh.host.toLowerCase().indexOf(search) < 0 &&
+                    dh.hostname.toLowerCase().indexOf(search) < 0) continue
+                discoveredFiltered.push(dh)
+            }
+            if (discoveredFiltered.length > 0) {
+                if (grouping) {
+                    items.push({
+                        isHeader: true,
+                        groupName: i18n("Discovered"),
+                        hostCount: discoveredFiltered.length,
+                        collapsed: root.isGroupCollapsed(i18n("Discovered"))
+                    })
+                    if (!root.isGroupCollapsed(i18n("Discovered"))) {
+                        for (var e = 0; e < discoveredFiltered.length; e++) {
+                            items.push({
+                                isHeader: false,
+                                host: discoveredFiltered[e].host,
+                                hostname: discoveredFiltered[e].hostname,
+                                user: "",
+                                icon: discoveredFiltered[e].icon,
+                                status: discoveredFiltered[e].status,
+                                discovered: true
+                            })
+                        }
+                    }
+                } else {
+                    for (var g = 0; g < discoveredFiltered.length; g++) {
+                        items.push({
+                            isHeader: false,
+                            host: discoveredFiltered[g].host,
+                            hostname: discoveredFiltered[g].hostname,
+                            user: "",
+                            icon: discoveredFiltered[g].icon,
+                            status: discoveredFiltered[g].status,
+                            discovered: true
+                        })
+                    }
+                }
             }
         }
 

@@ -17,6 +17,7 @@ KCMUtils.SimpleKCM {
     property alias cfg_enableSearch: enableSearchCheck.checked
     property alias cfg_notifyOnStatusChange: notifyOnStatusChangeCheck.checked
     property alias cfg_pollInterval: pollIntervalSpin.value
+    property alias cfg_discoverHosts: discoverHostsCheck.checked
     property alias cfg_showIcons: showIconsCheck.checked
 
     Kirigami.FormLayout {
@@ -48,6 +49,19 @@ KCMUtils.SimpleKCM {
             Kirigami.FormData.label: i18n("SSH config file:")
             Layout.fillWidth: true
             placeholderText: "~/.ssh/config"
+        }
+
+        QQC2.CheckBox {
+            id: discoverHostsCheck
+            Kirigami.FormData.label: i18n("Discover network hosts:")
+        }
+
+        QQC2.Label {
+            text: i18n("Uses Avahi/mDNS to find SSH servers on the local network")
+            font: Kirigami.Theme.smallFont
+            color: Kirigami.Theme.disabledTextColor
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
         }
 
         Kirigami.Separator {

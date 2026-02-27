@@ -38,6 +38,7 @@ PlasmoidItem {
         }
     }
     property var previousStatuses: ({})
+    property var discoveredHosts: []
 
     property var collapsedGroups: {
         try {
@@ -94,9 +95,62 @@ PlasmoidItem {
         onNewData: (sourceName, data) => { disconnectSource(sourceName) }
     }
 
+    Plasma5Support.DataSource {
+        id: discoveryRunner
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            disconnectSource(sourceName)
+            if (data["exit code"] === 0) {
+                root.parseDiscoveredHosts(data["stdout"])
+            }
+        }
+    }
+
     function loadConfig() {
         var path = plasmoid.configuration.sshConfigPath || "~/.ssh/config"
         configReader.connectSource("cat " + path.replace("~", "$HOME"))
+    }
+
+    function discoverNetworkHosts() {
+        if (!plasmoid.configuration.discoverHosts) return
+        discoveryRunner.connectSource("avahi-browse -tpr _ssh._tcp")
+    }
+
+    function parseDiscoveredHosts(output) {
+        var hosts = []
+        var seen = {}
+        var configuredHostnames = {}
+        for (var i = 0; i < hostList.length; i++) {
+            configuredHostnames[hostList[i].hostname.toLowerCase()] = true
+        }
+
+        var lines = output.split("\n")
+        for (var j = 0; j < lines.length; j++) {
+            var line = lines[j]
+            if (!line.startsWith("=")) continue
+            var fields = line.split(";")
+            if (fields.length < 9) continue
+            if (fields[2] !== "IPv4") continue
+
+            var name = fields[3]
+            var mdnsHost = fields[6]
+            var address = fields[7]
+
+            if (configuredHostnames[address.toLowerCase()]) continue
+            if (configuredHostnames[mdnsHost.toLowerCase()]) continue
+            if (seen[address]) continue
+            seen[address] = true
+
+            hosts.push({
+                host: name,
+                hostname: address,
+                user: "",
+                icon: "network-wired",
+                status: "online"
+            })
+        }
+        root.discoveredHosts = hosts
     }
 
     function checkAllStatus() {
