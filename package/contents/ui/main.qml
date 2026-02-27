@@ -146,6 +146,14 @@ PlasmoidItem {
         eventId: "notification"
     }
 
+    Timer {
+        id: pollTimer
+        interval: (plasmoid.configuration.pollInterval || 5) * 60 * 1000
+        repeat: true
+        running: plasmoid.configuration.notifyOnStatusChange && hostList.length > 0
+        onTriggered: root.checkAllStatus()
+    }
+
     function connectToHost(hostAlias) {
         var cmd = plasmoid.configuration.terminalCommand + " ssh " + hostAlias
         launcher.connectSource(cmd)

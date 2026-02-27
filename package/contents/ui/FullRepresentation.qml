@@ -81,6 +81,7 @@ PlasmaExtras.Representation {
 
                 PlasmaExtras.PlaceholderMessage {
                     anchors.centerIn: parent
+                    width: parent.width - Kirigami.Units.gridUnit * 2
                     visible: hostListView.count === 0
                     text: root.searchText !== ""
                         ? i18n("No matching hosts — press Enter to connect to \"%1\"", root.searchText)

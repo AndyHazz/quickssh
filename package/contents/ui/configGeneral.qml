@@ -16,6 +16,7 @@ KCMUtils.SimpleKCM {
     property alias cfg_enableGrouping: enableGroupingCheck.checked
     property alias cfg_enableSearch: enableSearchCheck.checked
     property alias cfg_notifyOnStatusChange: notifyOnStatusChangeCheck.checked
+    property alias cfg_pollInterval: pollIntervalSpin.value
     property alias cfg_showIcons: showIconsCheck.checked
 
     Kirigami.FormLayout {
@@ -77,6 +78,14 @@ KCMUtils.SimpleKCM {
             id: notifyOnStatusChangeCheck
             Kirigami.FormData.label: i18n("Notify on status change:")
             enabled: showStatusCheck.checked
+        }
+
+        QQC2.SpinBox {
+            id: pollIntervalSpin
+            Kirigami.FormData.label: i18n("Poll interval (minutes):")
+            from: 1
+            to: 60
+            enabled: notifyOnStatusChangeCheck.checked && showStatusCheck.checked
         }
 
         Kirigami.Separator {
