@@ -7,11 +7,13 @@
  *   #GroupStart <name>  — start a named group
  *   #GroupEnd           — close current group
  *   #Icon <name>        — set icon for next Host block
+ *   #MAC xx:xx:xx:xx:xx:xx — set MAC address for next Host (Wake-on-LAN)
+ *   #Command <cmd>      — add custom command for next Host (repeatable)
  *   Host <name>         — start host entry (skip wildcards)
  *   HostName <value>    — set hostname
  *   User <value>        — set user
  *
- * Returns: { groups: [{name: string, hosts: [{host, hostname, user, icon}]}] }
+ * Returns: { groups: [{name: string, hosts: [{host, hostname, user, icon, mac, commands}]}] }
  */
 function parseConfig(text) {
     var lines = text.split("\n")
@@ -20,6 +22,8 @@ function parseConfig(text) {
     var currentGroup = { name: "", hosts: [] }
     var currentHost = null
     var pendingIcon = ""
+    var pendingMac = ""
+    var pendingCommands = []
 
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i].trim()
@@ -59,6 +63,20 @@ function parseConfig(text) {
             continue
         }
 
+        // MAC directive (for Wake-on-LAN)
+        if (line.match(/^#\s*MAC\s+([0-9A-Fa-f:]{17})/i)) {
+            var macMatch = line.match(/^#\s*MAC\s+([0-9A-Fa-f:]{17})/i)
+            pendingMac = macMatch[1].trim()
+            continue
+        }
+
+        // Command directive (repeatable — accumulates into array)
+        if (line.match(/^#\s*Command\s+(.+)/i)) {
+            var cmdMatch = line.match(/^#\s*Command\s+(.+)/i)
+            pendingCommands.push(cmdMatch[1].trim())
+            continue
+        }
+
         // Skip other comments and blank lines
         if (line.startsWith("#") || line === "") {
             continue
@@ -89,7 +107,9 @@ function parseConfig(text) {
                         hostname: name,
                         user: "",
                         icon: pendingIcon || "network-server",
-                        status: "unknown"
+                        status: "unknown",
+                        mac: pendingMac,
+                        commands: pendingCommands.slice()
                     }
                 } else {
                     // Push previous and start new for multi-host
@@ -99,11 +119,15 @@ function parseConfig(text) {
                         hostname: name,
                         user: "",
                         icon: pendingIcon || "network-server",
-                        status: "unknown"
+                        status: "unknown",
+                        mac: pendingMac,
+                        commands: pendingCommands.slice()
                     }
                 }
             }
             pendingIcon = ""
+            pendingMac = ""
+            pendingCommands = []
             continue
         }
 

@@ -62,6 +62,26 @@ KCMUtils.SimpleKCM {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
             }
+
+            QQC2.Label {
+                text: "<b># MAC &lt;xx:xx:xx:xx:xx:xx&gt;</b>"
+                textFormat: Text.RichText
+            }
+            QQC2.Label {
+                text: i18n("Set the MAC address for the next Host entry. Enables Wake-on-LAN from the right-click menu when the host is offline. Requires the 'wakeonlan' package.")
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+            }
+
+            QQC2.Label {
+                text: "<b># Command &lt;command&gt;</b>"
+                textFormat: Text.RichText
+            }
+            QQC2.Label {
+                text: i18n("Add a custom command for the next Host entry. Can be repeated to add multiple commands. Commands appear in a submenu when right-clicking the host.")
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+            }
         }
 
         Kirigami.Separator {}
@@ -89,7 +109,7 @@ KCMUtils.SimpleKCM {
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 wrapMode: Text.WordWrap
                 textFormat: Text.PlainText
-                text: "# GroupStart Production Servers\n\n# Icon network-server-database\nHost prod-db\n    HostName 10.0.1.10\n    User admin\n\nHost prod-web\n    HostName 10.0.1.20\n    User deploy\n\n# GroupEnd\n\n# GroupStart Home Lab\n\n# Icon ~/.local/share/icons/quickssh/pihole.png\nHost pihole\n    HostName 192.168.1.50\n    User pi\n\nHost nas\n    HostName 192.168.1.100\n    User admin\n\n# GroupEnd\n\n# Hosts outside groups appear under \"Ungrouped\"\nHost personal-vps\n    HostName example.com\n    User me"
+                text: "# GroupStart Production Servers\n\n# Icon network-server-database\n# Command tail -f /var/log/syslog\n# Command systemctl status nginx\nHost prod-db\n    HostName 10.0.1.10\n    User admin\n\nHost prod-web\n    HostName 10.0.1.20\n    User deploy\n\n# GroupEnd\n\n# GroupStart Home Lab\n\n# Icon ~/.local/share/icons/quickssh/pihole.png\n# MAC aa:bb:cc:dd:ee:ff\nHost pihole\n    HostName 192.168.1.50\n    User pi\n\nHost nas\n    HostName 192.168.1.100\n    User admin\n\n# GroupEnd\n\n# Hosts outside groups appear under \"Ungrouped\"\nHost personal-vps\n    HostName example.com\n    User me"
             }
         }
 
@@ -102,7 +122,7 @@ KCMUtils.SimpleKCM {
         }
 
         QQC2.Label {
-            text: i18n("• These comments are ignored by SSH — they won't affect your connections.\n• Wildcard hosts (e.g. Host *) are automatically skipped.\n• The # Icon directive applies to the next Host entry only.\n• Icon names follow the freedesktop icon naming spec. Browse available icons with the Cuttlefish app (kde-dev-utils).")
+            text: i18n("• These comments are ignored by SSH — they won't affect your connections.\n• Wildcard hosts (e.g. Host *) are automatically skipped.\n• The # Icon, # MAC, and # Command directives apply to the next Host entry only.\n• Icon names follow the freedesktop icon naming spec. Browse available icons with the Cuttlefish app (kde-dev-utils).\n• # Command can be repeated multiple times to add several commands to one host.\n• Wake-on-LAN requires the 'wakeonlan' package to be installed.")
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }

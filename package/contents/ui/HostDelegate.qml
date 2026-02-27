@@ -85,6 +85,16 @@ QQC2.ItemDelegate {
                 color: Kirigami.Theme.disabledTextColor
                 visible: itemData.hostname !== itemData.host || itemData.user !== ""
             }
+
+            QQC2.Label {
+                text: itemData.lastConnected > 0 ? root.formatTimeAgo(itemData.lastConnected) : ""
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                color: Kirigami.Theme.disabledTextColor
+                opacity: 0.7
+                visible: itemData.lastConnected > 0
+            }
         }
 
         QQC2.ToolButton {
@@ -143,6 +153,34 @@ QQC2.ItemDelegate {
             text: i18n("Setup Passwordless Login...")
             icon.name: "dialog-password"
             onTriggered: root.setupPasswordlessLogin(itemData.host)
+        }
+
+        QQC2.MenuSeparator {
+            visible: itemData.mac !== "" || (itemData.commands && itemData.commands.length > 0)
+        }
+
+        QQC2.MenuItem {
+            text: i18n("Wake on LAN")
+            icon.name: "network-connect"
+            visible: itemData.mac !== "" && itemData.status === "offline"
+            onTriggered: root.wakeHost(itemData.mac)
+        }
+
+        QQC2.Menu {
+            id: commandsSubMenu
+            title: i18n("Run Command")
+            icon.name: "run-build"
+            visible: itemData.commands && itemData.commands.length > 0
+
+            Instantiator {
+                model: itemData.commands || []
+                delegate: QQC2.MenuItem {
+                    text: modelData
+                    onTriggered: root.runHostCommand(itemData.host, modelData)
+                }
+                onObjectAdded: (index, object) => commandsSubMenu.insertItem(index, object)
+                onObjectRemoved: (index, object) => commandsSubMenu.removeItem(object)
+            }
         }
     }
 }

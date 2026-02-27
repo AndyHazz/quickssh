@@ -8,17 +8,37 @@ KCMUtils.SimpleKCM {
     id: configPage
 
     property alias cfg_terminalCommand: terminalCommandField.text
+    property string cfg_terminalCommandDefault
     property alias cfg_sshConfigPath: sshConfigPathField.text
+    property string cfg_sshConfigPathDefault
     property alias cfg_showStatus: showStatusCheck.checked
+    property bool cfg_showStatusDefault
     property alias cfg_pingTimeout: pingTimeoutSpin.value
+    property int cfg_pingTimeoutDefault
     property alias cfg_showBadge: showBadgeCheck.checked
+    property bool cfg_showBadgeDefault
     property alias cfg_hideUnreachable: hideUnreachableCheck.checked
+    property bool cfg_hideUnreachableDefault
     property alias cfg_enableGrouping: enableGroupingCheck.checked
+    property bool cfg_enableGroupingDefault
     property alias cfg_enableSearch: enableSearchCheck.checked
+    property bool cfg_enableSearchDefault
     property alias cfg_notifyOnStatusChange: notifyOnStatusChangeCheck.checked
+    property bool cfg_notifyOnStatusChangeDefault
     property alias cfg_pollInterval: pollIntervalSpin.value
+    property int cfg_pollIntervalDefault
     property alias cfg_discoverHosts: discoverHostsCheck.checked
+    property bool cfg_discoverHostsDefault
     property alias cfg_showIcons: showIconsCheck.checked
+    property bool cfg_showIconsDefault
+
+    // Programmatic config entries (not exposed in settings UI)
+    property string cfg_favorites
+    property string cfg_favoritesDefault
+    property string cfg_collapsedGroups
+    property string cfg_collapsedGroupsDefault
+    property string cfg_connectionHistory
+    property string cfg_connectionHistoryDefault
 
     Kirigami.FormLayout {
         anchors.left: parent.left

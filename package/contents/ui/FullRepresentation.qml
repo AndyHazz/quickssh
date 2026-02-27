@@ -104,6 +104,7 @@ PlasmaExtras.Representation {
         function onFavoritesChanged() { fullRoot.refreshModel(false) }
         function onCollapsedGroupsChanged() { fullRoot.refreshModel(false) }
         function onDiscoveredHostsChanged() { fullRoot.refreshModel(false) }
+        function onConnectionHistoryChanged() { fullRoot.refreshModel(false) }
     }
 
     Timer {
@@ -212,6 +213,22 @@ PlasmaExtras.Representation {
 
 }
 
+    function hostItem(h, discovered) {
+        var lastConn = root.connectionHistory[h.host] || 0
+        return {
+            isHeader: false,
+            host: h.host,
+            hostname: h.hostname,
+            user: h.user,
+            icon: h.icon,
+            status: h.status,
+            discovered: discovered || false,
+            lastConnected: lastConn,
+            mac: h.mac || "",
+            commands: h.commands || []
+        }
+    }
+
     function buildFilteredModel() {
         var items = []
         var search = root.searchText.toLowerCase()
@@ -222,8 +239,12 @@ PlasmaExtras.Representation {
             favSet[root.favorites[f]] = true
         }
 
-        // Collect favorites from all groups
+        // Collect favorites and recent hosts from all groups
         var favoriteHosts = []
+        var recentHosts = []
+        var recentSet = {}
+        var now = Date.now()
+        var oneDayMs = 24 * 60 * 60 * 1000
 
         for (var i = 0; i < root.groupedHosts.length; i++) {
             var group = root.groupedHosts[i]
@@ -237,8 +258,14 @@ PlasmaExtras.Representation {
                     h.hostname.toLowerCase().indexOf(search) < 0 &&
                     h.user.toLowerCase().indexOf(search) < 0) continue
 
+                var lastConn = root.connectionHistory[h.host] || 0
+                var isRecent = lastConn > 0 && (now - lastConn) < oneDayMs
+
                 if (favSet[h.host]) {
                     favoriteHosts.push(h)
+                } else if (isRecent) {
+                    recentHosts.push(h)
+                    recentSet[h.host] = true
                 } else {
                     filteredHosts.push(h)
                 }
@@ -260,15 +287,28 @@ PlasmaExtras.Representation {
                 }
 
                 for (var k = 0; k < filteredHosts.length; k++) {
-                    items.push({
-                        isHeader: false,
-                        host: filteredHosts[k].host,
-                        hostname: filteredHosts[k].hostname,
-                        user: filteredHosts[k].user,
-                        icon: filteredHosts[k].icon,
-                        status: filteredHosts[k].status,
-                        discovered: false
-                    })
+                    items.push(hostItem(filteredHosts[k], false))
+                }
+            }
+        }
+
+        // Sort recent hosts by most recent first
+        recentHosts.sort(function(a, b) {
+            return (root.connectionHistory[b.host] || 0) - (root.connectionHistory[a.host] || 0)
+        })
+
+        // Prepend Recent section (after Favorites, before normal groups)
+        if (recentHosts.length > 0) {
+            var recentCollapsed = root.isGroupCollapsed(i18n("Recent"))
+            items.unshift({
+                isHeader: true,
+                groupName: i18n("Recent"),
+                hostCount: recentHosts.length,
+                collapsed: recentCollapsed
+            })
+            if (!recentCollapsed) {
+                for (var r = recentHosts.length - 1; r >= 0; r--) {
+                    items.splice(1, 0, hostItem(recentHosts[r], false))
                 }
             }
         }
@@ -284,15 +324,7 @@ PlasmaExtras.Representation {
                 })
             }
             for (var m = favoriteHosts.length - 1; m >= 0; m--) {
-                items.splice(grouping ? 1 : 0, 0, {
-                    isHeader: false,
-                    host: favoriteHosts[m].host,
-                    hostname: favoriteHosts[m].hostname,
-                    user: favoriteHosts[m].user,
-                    icon: favoriteHosts[m].icon,
-                    status: favoriteHosts[m].status,
-                    discovered: false
-                })
+                items.splice(grouping ? 1 : 0, 0, hostItem(favoriteHosts[m], false))
             }
         }
 
@@ -316,15 +348,7 @@ PlasmaExtras.Representation {
                 })
                 if (!discoveredCollapsed) {
                     for (var e = 0; e < discoveredFiltered.length; e++) {
-                        items.push({
-                            isHeader: false,
-                            host: discoveredFiltered[e].host,
-                            hostname: discoveredFiltered[e].hostname,
-                            user: "",
-                            icon: discoveredFiltered[e].icon,
-                            status: discoveredFiltered[e].status,
-                            discovered: true
-                        })
+                        items.push(hostItem(discoveredFiltered[e], true))
                     }
                 }
             }

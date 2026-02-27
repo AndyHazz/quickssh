@@ -47,5 +47,8 @@
     <entry name="collapsedGroups" type="String">
       <default></default>
     </entry>
+    <entry name="connectionHistory" type="String">
+      <default>{}</default>
+    </entry>
   </group>
 </kcfg>

@@ -49,6 +49,38 @@ PlasmoidItem {
         }
     }
 
+    property var connectionHistory: {
+        try {
+            return JSON.parse(plasmoid.configuration.connectionHistory || "{}")
+        } catch(e) {
+            return {}
+        }
+    }
+
+    function recordConnection(hostAlias) {
+        var history = {}
+        // Copy existing history
+        for (var key in connectionHistory) {
+            history[key] = connectionHistory[key]
+        }
+        history[hostAlias] = Date.now()
+        connectionHistory = history
+        plasmoid.configuration.connectionHistory = JSON.stringify(history)
+    }
+
+    function formatTimeAgo(timestamp) {
+        if (!timestamp || timestamp <= 0) return ""
+        var diff = Date.now() - timestamp
+        var seconds = Math.floor(diff / 1000)
+        if (seconds < 60) return i18n("just now")
+        var minutes = Math.floor(seconds / 60)
+        if (minutes < 60) return i18np("%1 min ago", "%1 mins ago", minutes)
+        var hours = Math.floor(minutes / 60)
+        if (hours < 24) return i18np("%1 hour ago", "%1 hours ago", hours)
+        var days = Math.floor(hours / 24)
+        return i18np("%1 day ago", "%1 days ago", days)
+    }
+
     Plasma5Support.DataSource {
         id: configReader
         engine: "executable"
@@ -212,7 +244,9 @@ PlasmoidItem {
 
     function connectToHost(hostAlias) {
         var cmd = plasmoid.configuration.terminalCommand + " ssh " + hostAlias
+        launcher.disconnectSource(cmd)
         launcher.connectSource(cmd)
+        recordConnection(hostAlias)
         root.expanded = false
     }
 
@@ -269,6 +303,16 @@ PlasmoidItem {
         }
         favorites = favs
         plasmoid.configuration.favorites = JSON.stringify(favs)
+    }
+
+    function wakeHost(mac) {
+        launcher.connectSource("wakeonlan " + mac)
+    }
+
+    function runHostCommand(hostAlias, command) {
+        var cmd = plasmoid.configuration.terminalCommand + " ssh " + hostAlias + " " + command
+        launcher.connectSource(cmd)
+        root.expanded = false
     }
 
     function connectFromSearch(text) {
