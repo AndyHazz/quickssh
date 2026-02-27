@@ -9,29 +9,17 @@ QQC2.ItemDelegate {
     id: hostDelegate
 
     width: parent ? parent.width : implicitWidth
-    height: Kirigami.Units.gridUnit * 2.5
+    height: Kirigami.Units.gridUnit * 2.2
 
     onClicked: root.connectToHost(itemData.host)
 
     contentItem: RowLayout {
-        spacing: Kirigami.Units.smallSpacing
-
-        Kirigami.Icon {
-            source: {
-                var icon = itemData.icon || "network-server"
-                if (icon.startsWith("~/")) {
-                    icon = StandardPaths.writableLocation(StandardPaths.HomeLocation) + icon.substring(1)
-                }
-                return icon
-            }
-            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-            Layout.leftMargin: Kirigami.Units.gridUnit
-        }
+        spacing: Kirigami.Units.mediumSpacing
 
         Rectangle {
-            Layout.preferredWidth: Kirigami.Units.smallSpacing * 3
-            Layout.preferredHeight: Kirigami.Units.smallSpacing * 3
+            Layout.preferredWidth: Kirigami.Units.smallSpacing * 2.5
+            Layout.preferredHeight: Kirigami.Units.smallSpacing * 2.5
+            Layout.leftMargin: Kirigami.Units.smallSpacing
             radius: width / 2
             visible: plasmoid.configuration.showStatus
             color: {
@@ -50,6 +38,24 @@ QQC2.ItemDelegate {
                 loops: Animation.Infinite
                 NumberAnimation { to: 0.3; duration: 500 }
                 NumberAnimation { to: 1.0; duration: 500 }
+            }
+        }
+
+        Item {
+            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+            Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+
+            Kirigami.Icon {
+                anchors.centerIn: parent
+                width: Math.min(parent.width, parent.height)
+                height: width
+                source: {
+                    var icon = itemData.icon || "network-server"
+                    if (icon.startsWith("~/")) {
+                        icon = StandardPaths.writableLocation(StandardPaths.HomeLocation) + icon.substring(1)
+                    }
+                    return icon
+                }
             }
         }
 
