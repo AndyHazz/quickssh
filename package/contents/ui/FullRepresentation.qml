@@ -82,7 +82,6 @@ PlasmaExtras.Representation {
 
         PlasmaExtras.PlasmoidHeading {
             Layout.fillWidth: true
-            location: PlasmaExtras.PlasmoidHeading.Location.Footer
 
             RowLayout {
                 anchors.fill: parent
