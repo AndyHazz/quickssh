@@ -15,6 +15,7 @@ KCMUtils.SimpleKCM {
     property alias cfg_hideUnreachable: hideUnreachableCheck.checked
     property alias cfg_enableGrouping: enableGroupingCheck.checked
     property alias cfg_enableSearch: enableSearchCheck.checked
+    property alias cfg_notifyOnStatusChange: notifyOnStatusChangeCheck.checked
     property alias cfg_showIcons: showIconsCheck.checked
 
     Kirigami.FormLayout {
@@ -69,6 +70,12 @@ KCMUtils.SimpleKCM {
         QQC2.CheckBox {
             id: hideUnreachableCheck
             Kirigami.FormData.label: i18n("Hide unreachable hosts:")
+            enabled: showStatusCheck.checked
+        }
+
+        QQC2.CheckBox {
+            id: notifyOnStatusChangeCheck
+            Kirigami.FormData.label: i18n("Notify on status change:")
             enabled: showStatusCheck.checked
         }
 

@@ -112,7 +112,19 @@ QQC2.ItemDelegate {
             onTriggered: root.copyToClipboard(itemData.hostname)
         }
 
+        QQC2.MenuItem {
+            text: i18n("Open in File Manager")
+            icon.name: "system-file-manager"
+            onTriggered: root.openSftp(itemData.host, itemData.user, itemData.hostname)
+        }
+
         QQC2.MenuSeparator {}
+
+        QQC2.MenuItem {
+            icon.name: root.isFavorite(itemData.host) ? "bookmark-remove" : "bookmark-new"
+            text: root.isFavorite(itemData.host) ? i18n("Unpin from Top") : i18n("Pin to Top")
+            onTriggered: root.toggleFavorite(itemData.host)
+        }
 
         QQC2.MenuItem {
             text: i18n("Setup Passwordless Login...")

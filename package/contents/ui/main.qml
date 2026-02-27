@@ -4,6 +4,7 @@ import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.kirigami as Kirigami
+import org.kde.notification
 
 import "../code/sshconfig.js" as SSHConfig
 
@@ -29,6 +30,15 @@ PlasmoidItem {
     property var hostList: []
     property var groupedHosts: []
     property string searchText: ""
+    property var favorites: {
+        try {
+            return JSON.parse(plasmoid.configuration.favorites || "[]")
+        } catch(e) {
+            return []
+        }
+    }
+    property var previousStatuses: ({})
+
     property var collapsedGroups: {
         try {
             return JSON.parse(plasmoid.configuration.collapsedGroups || "[]")
@@ -101,18 +111,39 @@ PlasmoidItem {
 
     function updateHostStatus(hostname, status) {
         var changed = false
+        var hostName = ""
         for (var i = 0; i < groupedHosts.length; i++) {
             for (var j = 0; j < groupedHosts[i].hosts.length; j++) {
                 if (groupedHosts[i].hosts[j].hostname === hostname) {
                     groupedHosts[i].hosts[j].status = status
+                    hostName = groupedHosts[i].hosts[j].host
                     changed = true
                 }
             }
         }
         if (changed) {
+            // Send notification on status change
+            if (plasmoid.configuration.notifyOnStatusChange) {
+                var prev = previousStatuses[hostname]
+                if (prev && prev !== status && prev !== "checking" && status !== "checking") {
+                    statusNotification.title = hostName
+                    statusNotification.text = status === "online"
+                        ? i18n("%1 is now online", hostName)
+                        : i18n("%1 is now offline", hostName)
+                    statusNotification.iconName = status === "online" ? "network-connect" : "network-disconnect"
+                    statusNotification.sendEvent()
+                }
+            }
+            previousStatuses[hostname] = status
             groupedHostsChanged()
             hostListChanged()
         }
+    }
+
+    Notification {
+        id: statusNotification
+        componentName: "plasma_workspace"
+        eventId: "notification"
     }
 
     function connectToHost(hostAlias) {
@@ -150,6 +181,36 @@ PlasmoidItem {
 
     function isGroupCollapsed(groupName) {
         return collapsedGroups.indexOf(groupName) >= 0
+    }
+
+    function openSftp(host, user, hostname) {
+        var url = "sftp://"
+        if (user) url += user + "@"
+        url += hostname
+        launcher.connectSource("xdg-open " + url)
+        root.expanded = false
+    }
+
+    function isFavorite(host) {
+        return favorites.indexOf(host) >= 0
+    }
+
+    function toggleFavorite(host) {
+        var favs = favorites.slice()
+        var idx = favs.indexOf(host)
+        if (idx >= 0) {
+            favs.splice(idx, 1)
+        } else {
+            favs.push(host)
+        }
+        favorites = favs
+        plasmoid.configuration.favorites = JSON.stringify(favs)
+    }
+
+    function connectFromSearch(text) {
+        var cmd = plasmoid.configuration.terminalCommand + " ssh " + text
+        launcher.connectSource(cmd)
+        root.expanded = false
     }
 
     Plasmoid.contextualActions: [
