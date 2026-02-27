@@ -64,6 +64,8 @@ PlasmaExtras.Representation {
             ListView {
                 id: hostListView
                 clip: true
+                topMargin: Kirigami.Units.mediumSpacing
+                bottomMargin: Kirigami.Units.mediumSpacing
                 model: buildFilteredModel()
 
                 delegate: Loader {
