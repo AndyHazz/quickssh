@@ -1,0 +1,24 @@
+{
+  "KPlugin": {
+    "Authors": [
+      {
+        "Name": "Andy Hazelden",
+        "Email": "517731+AndyHazz@users.noreply.github.com"
+      }
+    ],
+    "Category": "Utilities",
+    "Description": "Quick SSH connections from your SSH config",
+    "Icon": "network-connect",
+    "Id": "com.github.andyhazz.quickssh",
+    "Name": "Quick SSH",
+    "EnabledByDefault": true,
+    "Version": "1.0.0",
+    "License": "GPL-3.0",
+    "BugReportUrl": "https://github.com/AndyHazz/quickssh/issues",
+    "Website": "https://github.com/AndyHazz/quickssh"
+  },
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0",
+  "X-Plasma-NotificationArea": "true",
+  "X-Plasma-NotificationAreaCategory": "SystemServices"
+}
