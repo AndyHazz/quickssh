@@ -50,5 +50,8 @@
     <entry name="connectionHistory" type="String">
       <default>{}</default>
     </entry>
+    <entry name="cachedHosts" type="String">
+      <default></default>
+    </entry>
   </group>
 </kcfg>

@@ -18,7 +18,6 @@ PlasmaExtras.Representation {
     collapseMarginsHint: true
 
     property var hostModel: []
-    property bool showPlaceholder: false
 
     function refreshModel(resetSelection) {
         var savedHost = ""
@@ -81,22 +80,21 @@ PlasmaExtras.Representation {
         }
     }
 
+    Component.onCompleted: refreshModel(true)
+
     Connections {
         target: root
         function onExpandedChanged() {
             if (root.expanded) {
-                fullRoot.showPlaceholder = false
-                placeholderDelay.restart()
-                root.loadConfig()
-                root.checkAllStatus()
-                root.discoverNetworkHosts()
+                fullRoot.refreshModel(false)
                 searchField.text = ""
-                fullRoot.refreshModel(true)
+                hostListView.currentIndex = -1
                 if (plasmoid.configuration.enableSearch) {
                     searchField.forceActiveFocus()
                 } else {
                     hostListView.forceActiveFocus()
                 }
+                root.refreshIfStale()
             }
         }
         function onSearchTextChanged() { fullRoot.refreshModel(true) }
@@ -105,12 +103,6 @@ PlasmaExtras.Representation {
         function onCollapsedGroupsChanged() { fullRoot.refreshModel(false) }
         function onDiscoveredHostsChanged() { fullRoot.refreshModel(false) }
         function onConnectionHistoryChanged() { fullRoot.refreshModel(false) }
-    }
-
-    Timer {
-        id: placeholderDelay
-        interval: 200
-        onTriggered: fullRoot.showPlaceholder = true
     }
 
     ColumnLayout {
@@ -202,7 +194,7 @@ PlasmaExtras.Representation {
                 PlasmaExtras.PlaceholderMessage {
                     anchors.centerIn: parent
                     width: parent.width - Kirigami.Units.gridUnit * 2
-                    visible: hostListView.count === 0 && fullRoot.showPlaceholder
+                    visible: hostListView.count === 0 && root.configLoaded
                     text: root.searchText !== ""
                         ? i18n("No matching hosts — press Enter to connect to \"%1\"", root.searchText)
                         : i18n("No SSH hosts configured")

@@ -13,6 +13,7 @@ PlasmoidItem {
 
     compactRepresentation: CompactRepresentation {}
     fullRepresentation: FullRepresentation {}
+    preloadFullRepresentation: true
 
     switchWidth: Kirigami.Units.gridUnit * 20
     switchHeight: Kirigami.Units.gridUnit * 14
@@ -27,8 +28,27 @@ PlasmoidItem {
         return i18np("%1 host configured", "%1 hosts configured", count)
     }
 
-    property var hostList: []
-    property var groupedHosts: []
+    property var groupedHosts: {
+        try {
+            var cached = JSON.parse(plasmoid.configuration.cachedHosts || "[]")
+            if (cached.length > 0) {
+                // Reset stale statuses — checkAllStatus() will refresh them
+                for (var i = 0; i < cached.length; i++)
+                    for (var j = 0; j < cached[i].hosts.length; j++)
+                        cached[i].hosts[j].status = "unknown"
+                return cached
+            }
+        } catch(e) {}
+        return []
+    }
+    property var hostList: {
+        var groups = groupedHosts
+        var flat = []
+        for (var i = 0; i < groups.length; i++)
+            for (var j = 0; j < groups[i].hosts.length; j++)
+                flat.push(groups[i].hosts[j])
+        return flat
+    }
     property string searchText: ""
     property var favorites: {
         try {
@@ -37,9 +57,20 @@ PlasmoidItem {
             return []
         }
     }
-    property bool configLoaded: false
+    property bool configLoaded: groupedHosts.length > 0
     property var previousStatuses: ({})
     property var discoveredHosts: []
+    property double lastRefreshTime: 0
+    readonly property int refreshCooldown: 30000 // 30 seconds
+
+    function refreshIfStale() {
+        var now = Date.now()
+        if (now - lastRefreshTime < refreshCooldown) return
+        lastRefreshTime = now
+        loadConfig()
+        checkAllStatus()
+        discoverNetworkHosts()
+    }
 
     property var collapsedGroups: {
         try {
@@ -89,15 +120,23 @@ PlasmoidItem {
             disconnectSource(sourceName)
             if (data["exit code"] === 0) {
                 var result = SSHConfig.parseConfig(data["stdout"])
-                root.groupedHosts = result.groups
-                var flat = []
-                for (var i = 0; i < result.groups.length; i++) {
-                    for (var j = 0; j < result.groups[i].hosts.length; j++) {
-                        flat.push(result.groups[i].hosts[j])
+                var newCacheJson = JSON.stringify(result.groups)
+                // Skip model rebuild if SSH config hasn't changed
+                if (newCacheJson !== plasmoid.configuration.cachedHosts) {
+                    root.groupedHosts = result.groups
+                    var flat = []
+                    for (var i = 0; i < result.groups.length; i++) {
+                        for (var j = 0; j < result.groups[i].hosts.length; j++) {
+                            flat.push(result.groups[i].hosts[j])
+                        }
                     }
+                    root.hostList = flat
+                    plasmoid.configuration.cachedHosts = newCacheJson
                 }
-                root.hostList = flat
                 root.configLoaded = true
+                root.checkAllStatus()
+                root.discoverNetworkHosts()
+                root.lastRefreshTime = Date.now()
             }
         }
     }
@@ -187,14 +226,32 @@ PlasmoidItem {
         root.discoveredHosts = hosts
     }
 
+    property var pingQueue: []
+
+    Timer {
+        id: pingStagger
+        interval: 1 // yields to the event loop between each connection
+        repeat: true
+        onTriggered: {
+            if (root.pingQueue.length === 0) {
+                stop()
+                return
+            }
+            pingRunner.connectSource(root.pingQueue.shift())
+        }
+    }
+
     function checkAllStatus() {
         if (!plasmoid.configuration.showStatus) return
         var timeout = plasmoid.configuration.pingTimeout || 2
+        var queue = []
         for (var i = 0; i < hostList.length; i++) {
             hostList[i].status = "checking"
-            pingRunner.connectSource("ping -c 1 -W " + timeout + " " + hostList[i].hostname)
+            queue.push("ping -c 1 -W " + timeout + " " + hostList[i].hostname)
         }
+        root.pingQueue = queue
         hostListChanged()
+        pingStagger.restart()
     }
 
     function updateHostStatus(hostname, status) {
@@ -223,8 +280,18 @@ PlasmoidItem {
                 }
             }
             previousStatuses[hostname] = status
-            groupedHostsChanged()
-            hostListChanged()
+            statusDebounce.restart()
+        }
+    }
+
+    Timer {
+        id: statusDebounce
+        interval: 200
+        onTriggered: {
+            // Only rebuild the model when popup is visible; otherwise let changes accumulate
+            if (root.expanded) {
+                root.groupedHosts = root.groupedHosts.slice()
+            }
         }
     }
 
@@ -326,8 +393,8 @@ PlasmoidItem {
             text: i18n("Refresh")
             icon.name: "view-refresh"
             onTriggered: {
-                root.loadConfig()
-                root.checkAllStatus()
+                root.lastRefreshTime = 0
+                root.refreshIfStale()
             }
         },
         PlasmaCore.Action {

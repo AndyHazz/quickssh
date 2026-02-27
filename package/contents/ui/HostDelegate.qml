@@ -117,69 +117,74 @@ QQC2.ItemDelegate {
 
     TapHandler {
         acceptedButtons: Qt.RightButton
-        onTapped: contextMenu.popup()
+        onTapped: {
+            contextMenuLoader.active = true
+            contextMenuLoader.item.popup()
+        }
     }
 
-    QQC2.Menu {
-        id: contextMenu
+    Loader {
+        id: contextMenuLoader
+        active: false
+        sourceComponent: QQC2.Menu {
+            QQC2.MenuItem {
+                text: i18n("Copy SSH Command")
+                icon.name: "edit-copy"
+                onTriggered: root.copyToClipboard("ssh " + itemData.host)
+            }
 
-        QQC2.MenuItem {
-            text: i18n("Copy SSH Command")
-            icon.name: "edit-copy"
-            onTriggered: root.copyToClipboard("ssh " + itemData.host)
-        }
+            QQC2.MenuItem {
+                text: i18n("Copy Hostname")
+                icon.name: "edit-copy"
+                onTriggered: root.copyToClipboard(itemData.hostname)
+            }
 
-        QQC2.MenuItem {
-            text: i18n("Copy Hostname")
-            icon.name: "edit-copy"
-            onTriggered: root.copyToClipboard(itemData.hostname)
-        }
+            QQC2.MenuItem {
+                text: i18n("Open in File Manager")
+                icon.name: "system-file-manager"
+                onTriggered: root.openSftp(itemData.host, itemData.user, itemData.hostname)
+            }
 
-        QQC2.MenuItem {
-            text: i18n("Open in File Manager")
-            icon.name: "system-file-manager"
-            onTriggered: root.openSftp(itemData.host, itemData.user, itemData.hostname)
-        }
+            QQC2.MenuSeparator {}
 
-        QQC2.MenuSeparator {}
+            QQC2.MenuItem {
+                icon.name: root.isFavorite(itemData.host) ? "bookmark-remove" : "bookmark-new"
+                text: root.isFavorite(itemData.host) ? i18n("Unpin from Top") : i18n("Pin to Top")
+                onTriggered: root.toggleFavorite(itemData.host)
+            }
 
-        QQC2.MenuItem {
-            icon.name: root.isFavorite(itemData.host) ? "bookmark-remove" : "bookmark-new"
-            text: root.isFavorite(itemData.host) ? i18n("Unpin from Top") : i18n("Pin to Top")
-            onTriggered: root.toggleFavorite(itemData.host)
-        }
+            QQC2.MenuItem {
+                text: i18n("Setup Passwordless Login...")
+                icon.name: "dialog-password"
+                onTriggered: root.setupPasswordlessLogin(itemData.host)
+            }
 
-        QQC2.MenuItem {
-            text: i18n("Setup Passwordless Login...")
-            icon.name: "dialog-password"
-            onTriggered: root.setupPasswordlessLogin(itemData.host)
-        }
+            QQC2.MenuSeparator {
+                visible: itemData.mac !== "" || (itemData.commands && itemData.commands.length > 0)
+            }
 
-        QQC2.MenuSeparator {
-            visible: itemData.mac !== "" || (itemData.commands && itemData.commands.length > 0)
-        }
+            QQC2.MenuItem {
+                text: i18n("Wake on LAN")
+                icon.name: "network-connect"
+                visible: itemData.mac !== "" && itemData.status === "offline"
+                onTriggered: root.wakeHost(itemData.mac)
+            }
 
-        QQC2.MenuItem {
-            text: i18n("Wake on LAN")
-            icon.name: "network-connect"
-            visible: itemData.mac !== "" && itemData.status === "offline"
-            onTriggered: root.wakeHost(itemData.mac)
-        }
+            QQC2.Menu {
+                id: commandsSubMenu
+                title: i18n("Run Command")
+                icon.name: "run-build"
+                visible: itemData.commands && itemData.commands.length > 0
 
-        QQC2.Menu {
-            id: commandsSubMenu
-            title: i18n("Run Command")
-            icon.name: "run-build"
-            visible: itemData.commands && itemData.commands.length > 0
-
-            Instantiator {
-                model: itemData.commands || []
-                delegate: QQC2.MenuItem {
-                    text: modelData
-                    onTriggered: root.runHostCommand(itemData.host, modelData)
+                Instantiator {
+                    model: itemData.commands || []
+                    delegate: QQC2.MenuItem {
+                        text: modelData
+                        onTriggered: root.runHostCommand(itemData.host, modelData)
+                    }
+                    onObjectAdded: (index, object) => commandsSubMenu.insertItem(index, object)
+                    onObjectRemoved: (index, object) => commandsSubMenu.removeItem(object)
                 }
-                onObjectAdded: (index, object) => commandsSubMenu.insertItem(index, object)
-                onObjectRemoved: (index, object) => commandsSubMenu.removeItem(object)
             }
         }
     }

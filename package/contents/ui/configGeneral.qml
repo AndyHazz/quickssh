@@ -39,6 +39,8 @@ KCMUtils.SimpleKCM {
     property string cfg_collapsedGroupsDefault
     property string cfg_connectionHistory
     property string cfg_connectionHistoryDefault
+    property string cfg_cachedHosts
+    property string cfg_cachedHostsDefault
 
     Kirigami.FormLayout {
         anchors.left: parent.left
