@@ -8,7 +8,7 @@
     ],
     "Category": "Utilities",
     "Description": "Quick SSH connections from your SSH config",
-    "Icon": "network-connect",
+    "Icon": "utilities-terminal",
     "Id": "com.github.andyhazz.quickssh",
     "Name": "Quick SSH",
     "EnabledByDefault": true,

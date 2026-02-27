@@ -16,7 +16,7 @@ PlasmoidItem {
     switchWidth: Kirigami.Units.gridUnit * 20
     switchHeight: Kirigami.Units.gridUnit * 14
 
-    Plasmoid.icon: "network-connect"
+    Plasmoid.icon: "utilities-terminal"
     Plasmoid.status: PlasmaCore.Types.ActiveStatus
     Plasmoid.backgroundHints: PlasmaCore.Types.DefaultBackground | PlasmaCore.Types.ConfigurableBackground
 

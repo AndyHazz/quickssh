@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
+import QtCore
 
 QQC2.ItemDelegate {
     id: hostDelegate
@@ -16,7 +17,13 @@ QQC2.ItemDelegate {
         spacing: Kirigami.Units.smallSpacing
 
         Kirigami.Icon {
-            source: itemData.icon || "network-server"
+            source: {
+                var icon = itemData.icon || "network-server"
+                if (icon.startsWith("~/")) {
+                    icon = StandardPaths.writableLocation(StandardPaths.HomeLocation) + icon.substring(1)
+                }
+                return icon
+            }
             Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
             Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
             Layout.leftMargin: Kirigami.Units.gridUnit
