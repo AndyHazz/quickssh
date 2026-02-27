@@ -298,35 +298,22 @@ PlasmaExtras.Representation {
                 discoveredFiltered.push(dh)
             }
             if (discoveredFiltered.length > 0) {
-                if (grouping) {
-                    items.push({
-                        isHeader: true,
-                        groupName: i18n("Discovered"),
-                        hostCount: discoveredFiltered.length,
-                        collapsed: root.isGroupCollapsed(i18n("Discovered"))
-                    })
-                    if (!root.isGroupCollapsed(i18n("Discovered"))) {
-                        for (var e = 0; e < discoveredFiltered.length; e++) {
-                            items.push({
-                                isHeader: false,
-                                host: discoveredFiltered[e].host,
-                                hostname: discoveredFiltered[e].hostname,
-                                user: "",
-                                icon: discoveredFiltered[e].icon,
-                                status: discoveredFiltered[e].status,
-                                discovered: true
-                            })
-                        }
-                    }
-                } else {
-                    for (var g = 0; g < discoveredFiltered.length; g++) {
+                var discoveredCollapsed = root.isGroupCollapsed(i18n("Discovered"))
+                items.push({
+                    isHeader: true,
+                    groupName: i18n("Discovered"),
+                    hostCount: discoveredFiltered.length,
+                    collapsed: discoveredCollapsed
+                })
+                if (!discoveredCollapsed) {
+                    for (var e = 0; e < discoveredFiltered.length; e++) {
                         items.push({
                             isHeader: false,
-                            host: discoveredFiltered[g].host,
-                            hostname: discoveredFiltered[g].hostname,
+                            host: discoveredFiltered[e].host,
+                            hostname: discoveredFiltered[e].hostname,
                             user: "",
-                            icon: discoveredFiltered[g].icon,
-                            status: discoveredFiltered[g].status,
+                            icon: discoveredFiltered[e].icon,
+                            status: discoveredFiltered[e].status,
                             discovered: true
                         })
                     }
