@@ -86,6 +86,19 @@ QQC2.ItemDelegate {
                 visible: itemData.hostname !== itemData.host || itemData.user !== ""
             }
         }
+
+        QQC2.ToolButton {
+            visible: hostDelegate.hovered
+            icon.name: "system-file-manager"
+            icon.width: Kirigami.Units.iconSizes.small
+            icon.height: Kirigami.Units.iconSizes.small
+            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+            Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+            QQC2.ToolTip.text: i18n("Open in File Manager")
+            QQC2.ToolTip.visible: hovered
+            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+            onClicked: root.openSftp(itemData.host, itemData.user, itemData.hostname)
+        }
     }
 
     QQC2.ToolTip.text: "ssh " + (itemData.user ? itemData.user + "@" : "") + itemData.hostname

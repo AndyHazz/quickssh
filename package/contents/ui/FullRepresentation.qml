@@ -38,6 +38,17 @@ PlasmaExtras.Representation {
                 Keys.onReturnPressed: {
                     if (text !== "" && hostListView.count === 0) {
                         root.connectFromSearch(text)
+                    } else if (hostListView.count > 0) {
+                        var idx = hostListView.nextHostIndex(0)
+                        if (idx >= 0) {
+                            root.connectToHost(hostListView.model[idx].host)
+                        }
+                    }
+                }
+                Keys.onDownPressed: {
+                    if (hostListView.count > 0) {
+                        hostListView.currentIndex = hostListView.nextHostIndex(0)
+                        hostListView.forceActiveFocus()
                     }
                 }
             }
@@ -53,6 +64,8 @@ PlasmaExtras.Representation {
                 searchField.text = ""
                 if (plasmoid.configuration.enableSearch) {
                     searchField.forceActiveFocus()
+                } else {
+                    hostListView.forceActiveFocus()
                 }
             }
         }
@@ -72,6 +85,73 @@ PlasmaExtras.Representation {
                 topMargin: Kirigami.Units.mediumSpacing
                 bottomMargin: Kirigami.Units.mediumSpacing
                 model: buildFilteredModel()
+                currentIndex: -1
+                activeFocusOnTab: true
+                keyNavigationEnabled: false
+                highlightFollowsCurrentItem: true
+                highlightMoveDuration: 0
+
+                onModelChanged: currentIndex = -1
+                onActiveFocusChanged: {
+                    if (activeFocus && currentIndex < 0) {
+                        currentIndex = nextHostIndex(0)
+                    }
+                }
+
+                function nextHostIndex(from) {
+                    for (var i = from; i < count; i++) {
+                        if (!model[i].isHeader) return i
+                    }
+                    return -1
+                }
+
+                function prevHostIndex(from) {
+                    for (var i = from; i >= 0; i--) {
+                        if (!model[i].isHeader) return i
+                    }
+                    return -1
+                }
+
+                Keys.onReturnPressed: {
+                    if (currentIndex >= 0 && currentIndex < count) {
+                        var item = model[currentIndex]
+                        if (item && !item.isHeader) {
+                            root.connectToHost(item.host)
+                        }
+                    }
+                }
+
+                Keys.onDownPressed: {
+                    var next = nextHostIndex(currentIndex + 1)
+                    if (next >= 0) currentIndex = next
+                }
+
+                Keys.onUpPressed: {
+                    var prev = prevHostIndex(currentIndex - 1)
+                    if (prev >= 0) {
+                        currentIndex = prev
+                    } else {
+                        currentIndex = -1
+                        if (plasmoid.configuration.enableSearch) {
+                            searchField.forceActiveFocus()
+                        }
+                    }
+                }
+
+                Keys.onEscapePressed: {
+                    currentIndex = -1
+                    if (plasmoid.configuration.enableSearch) {
+                        searchField.forceActiveFocus()
+                    } else {
+                        root.expanded = false
+                    }
+                }
+
+                highlight: Rectangle {
+                    color: Kirigami.Theme.highlightColor
+                    opacity: hostListView.activeFocus ? 0.2 : 0
+                    radius: Kirigami.Units.smallSpacing
+                }
 
                 delegate: Loader {
                     width: hostListView.width
