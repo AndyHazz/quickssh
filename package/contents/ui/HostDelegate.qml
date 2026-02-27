@@ -9,7 +9,7 @@ QQC2.ItemDelegate {
     id: hostDelegate
 
     width: parent ? parent.width : implicitWidth
-    height: Kirigami.Units.gridUnit * 2.2
+    height: plasmoid.configuration.showIcons ? Kirigami.Units.gridUnit * 3 : Kirigami.Units.gridUnit * 2.2
 
     onClicked: root.connectToHost(itemData.host)
 
@@ -42,6 +42,7 @@ QQC2.ItemDelegate {
         }
 
         Item {
+            visible: plasmoid.configuration.showIcons
             Layout.preferredWidth: Kirigami.Units.iconSizes.medium
             Layout.preferredHeight: Kirigami.Units.iconSizes.medium
 

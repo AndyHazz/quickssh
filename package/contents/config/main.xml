@@ -29,6 +29,9 @@
     <entry name="enableSearch" type="Bool">
       <default>true</default>
     </entry>
+    <entry name="showIcons" type="Bool">
+      <default>true</default>
+    </entry>
     <entry name="collapsedGroups" type="String">
       <default></default>
     </entry>

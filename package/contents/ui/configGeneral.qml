@@ -15,6 +15,7 @@ KCMUtils.SimpleKCM {
     property alias cfg_hideUnreachable: hideUnreachableCheck.checked
     property alias cfg_enableGrouping: enableGroupingCheck.checked
     property alias cfg_enableSearch: enableSearchCheck.checked
+    property alias cfg_showIcons: showIconsCheck.checked
 
     Kirigami.FormLayout {
         anchors.left: parent.left
@@ -84,6 +85,11 @@ KCMUtils.SimpleKCM {
         QQC2.CheckBox {
             id: enableGroupingCheck
             Kirigami.FormData.label: i18n("Group hosts:")
+        }
+
+        QQC2.CheckBox {
+            id: showIconsCheck
+            Kirigami.FormData.label: i18n("Show host icons:")
         }
 
         QQC2.CheckBox {
