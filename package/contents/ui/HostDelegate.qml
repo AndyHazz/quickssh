@@ -9,7 +9,8 @@ QQC2.ItemDelegate {
     id: hostDelegate
 
     width: parent ? parent.width : implicitWidth
-    height: plasmoid.configuration.showIcons ? Kirigami.Units.gridUnit * 3 : Kirigami.Units.gridUnit * 2.5
+    topPadding: Kirigami.Units.smallSpacing
+    bottomPadding: Kirigami.Units.smallSpacing
 
     onClicked: root.connectToHost(itemData.host)
 
