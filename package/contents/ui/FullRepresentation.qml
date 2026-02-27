@@ -17,6 +17,29 @@ PlasmaExtras.Representation {
 
     collapseMarginsHint: true
 
+    property var hostModel: []
+
+    function refreshModel(resetSelection) {
+        var savedHost = ""
+        if (!resetSelection && hostListView.currentIndex >= 0 && hostListView.currentIndex < hostModel.length) {
+            var current = hostModel[hostListView.currentIndex]
+            if (current && !current.isHeader) savedHost = current.host
+        }
+
+        hostModel = buildFilteredModel()
+
+        if (resetSelection) {
+            hostListView.currentIndex = -1
+        } else if (savedHost) {
+            for (var i = 0; i < hostModel.length; i++) {
+                if (!hostModel[i].isHeader && hostModel[i].host === savedHost) {
+                    hostListView.currentIndex = i
+                    return
+                }
+            }
+        }
+    }
+
     header: PlasmaExtras.PlasmoidHeading {
         visible: plasmoid.configuration.enableSearch
 
@@ -63,6 +86,7 @@ PlasmaExtras.Representation {
                 root.loadConfig()
                 root.checkAllStatus()
                 searchField.text = ""
+                fullRoot.refreshModel(true)
                 if (plasmoid.configuration.enableSearch) {
                     searchField.forceActiveFocus()
                 } else {
@@ -70,6 +94,10 @@ PlasmaExtras.Representation {
                 }
             }
         }
+        function onSearchTextChanged() { fullRoot.refreshModel(true) }
+        function onGroupedHostsChanged() { fullRoot.refreshModel(false) }
+        function onFavoritesChanged() { fullRoot.refreshModel(false) }
+        function onCollapsedGroupsChanged() { fullRoot.refreshModel(false) }
     }
 
     ColumnLayout {
@@ -85,19 +113,12 @@ PlasmaExtras.Representation {
                 clip: true
                 topMargin: Kirigami.Units.mediumSpacing
                 bottomMargin: Kirigami.Units.mediumSpacing
-                model: buildFilteredModel()
+                model: fullRoot.hostModel
                 currentIndex: -1
                 activeFocusOnTab: true
                 keyNavigationEnabled: false
                 highlightFollowsCurrentItem: true
                 highlightMoveDuration: 0
-
-                Connections {
-                    target: root
-                    function onSearchTextChanged() {
-                        hostListView.currentIndex = -1
-                    }
-                }
                 onActiveFocusChanged: {
                     if (activeFocus && currentIndex < 0) {
                         currentIndex = nextHostIndex(0)
