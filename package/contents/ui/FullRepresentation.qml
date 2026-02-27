@@ -128,7 +128,7 @@ PlasmaExtras.Representation {
 
             for (var j = 0; j < group.hosts.length; j++) {
                 var h = group.hosts[j]
-                if (hideOffline && h.status === "offline") continue
+                if (hideOffline && h.status !== "online") continue
                 if (search !== "" &&
                     h.host.toLowerCase().indexOf(search) < 0 &&
                     h.hostname.toLowerCase().indexOf(search) < 0 &&

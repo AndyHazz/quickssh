@@ -23,4 +23,24 @@ MouseArea {
         source: Plasmoid.icon
         active: compactRoot.containsMouse
     }
+
+    Rectangle {
+        id: badge
+        visible: plasmoid.configuration.showBadge && root.hostList.length > 0
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        width: badgeLabel.implicitWidth + Kirigami.Units.smallSpacing * 2
+        height: badgeLabel.implicitHeight + Kirigami.Units.smallSpacing
+        radius: height / 2
+        color: Kirigami.Theme.highlightColor
+
+        Text {
+            id: badgeLabel
+            anchors.centerIn: parent
+            text: root.hostList.length
+            color: Kirigami.Theme.highlightedTextColor
+            font.pixelSize: Math.round(parent.parent.height * 0.35)
+            font.bold: true
+        }
+    }
 }
