@@ -152,6 +152,25 @@ PlasmoidItem {
         return collapsedGroups.indexOf(groupName) >= 0
     }
 
+    Plasmoid.contextualActions: [
+        PlasmaCore.Action {
+            text: i18n("Refresh")
+            icon.name: "view-refresh"
+            onTriggered: {
+                root.loadConfig()
+                root.checkAllStatus()
+            }
+        },
+        PlasmaCore.Action {
+            text: i18n("Edit SSH Config")
+            icon.name: "document-edit"
+            onTriggered: {
+                var path = plasmoid.configuration.sshConfigPath || "~/.ssh/config"
+                root.editConfig(path)
+            }
+        }
+    ]
+
     Component.onCompleted: loadConfig()
 
     Connections {
