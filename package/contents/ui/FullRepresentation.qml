@@ -92,7 +92,12 @@ PlasmaExtras.Representation {
                 highlightFollowsCurrentItem: true
                 highlightMoveDuration: 0
 
-                onModelChanged: currentIndex = -1
+                Connections {
+                    target: root
+                    function onSearchTextChanged() {
+                        hostListView.currentIndex = -1
+                    }
+                }
                 onActiveFocusChanged: {
                     if (activeFocus && currentIndex < 0) {
                         currentIndex = nextHostIndex(0)
