@@ -17,7 +17,7 @@ PlasmaExtras.Representation {
 
     collapseMarginsHint: true
 
-    property var hostModel: []
+    property var hostModel: buildFilteredModel()
 
     function refreshModel(resetSelection) {
         var savedHost = ""
