@@ -37,6 +37,7 @@ PlasmoidItem {
             return []
         }
     }
+    property bool configLoaded: false
     property var previousStatuses: ({})
     property var discoveredHosts: []
 
@@ -64,6 +65,7 @@ PlasmoidItem {
                     }
                 }
                 root.hostList = flat
+                root.configLoaded = true
             }
         }
     }
