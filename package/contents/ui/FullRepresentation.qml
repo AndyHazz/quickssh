@@ -18,13 +18,13 @@ PlasmaExtras.Representation {
     collapseMarginsHint: true
 
     header: PlasmaExtras.PlasmoidHeading {
-        visible: plasmoid.configuration.enableSearch
-
         RowLayout {
             anchors.fill: parent
+            spacing: Kirigami.Units.smallSpacing
 
             Kirigami.SearchField {
                 id: searchField
+                visible: plasmoid.configuration.enableSearch
                 Layout.fillWidth: true
                 placeholderText: i18n("Search hosts...")
                 onTextChanged: root.searchText = text
@@ -34,6 +34,33 @@ PlasmaExtras.Representation {
                     } else {
                         root.expanded = false
                     }
+                }
+            }
+
+            Item {
+                visible: !plasmoid.configuration.enableSearch
+                Layout.fillWidth: true
+            }
+
+            QQC2.ToolButton {
+                icon.name: "view-refresh"
+                display: QQC2.AbstractButton.IconOnly
+                QQC2.ToolTip.text: i18n("Refresh hosts and status")
+                QQC2.ToolTip.visible: hovered
+                onClicked: {
+                    root.loadConfig()
+                    root.checkAllStatus()
+                }
+            }
+
+            QQC2.ToolButton {
+                icon.name: "document-edit"
+                display: QQC2.AbstractButton.IconOnly
+                QQC2.ToolTip.text: i18n("Edit SSH config file...")
+                QQC2.ToolTip.visible: hovered
+                onClicked: {
+                    var path = plasmoid.configuration.sshConfigPath || "~/.ssh/config"
+                    root.editConfig(path)
                 }
             }
         }
