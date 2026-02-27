@@ -46,6 +46,7 @@ QQC2.ItemDelegate {
             visible: plasmoid.configuration.showIcons
             Layout.preferredWidth: Kirigami.Units.iconSizes.medium
             Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+            Layout.rightMargin: Kirigami.Units.smallSpacing
 
             Kirigami.Icon {
                 anchors.centerIn: parent
