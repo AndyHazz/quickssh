@@ -51,14 +51,7 @@ PlasmaExtras.Representation {
                         hostListView.forceActiveFocus()
                     }
                 }
-                Keys.onTabPressed: (event) => {
-                    if (event.modifiers & Qt.ShiftModifier) {
-                        event.accepted = false
-                    } else if (hostListView.count > 0) {
-                        hostListView.currentIndex = hostListView.nextHostIndex(0)
-                        hostListView.forceActiveFocus()
-                    }
-                }
+
             }
         }
     }
