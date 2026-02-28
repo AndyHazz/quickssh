@@ -99,15 +99,18 @@ QQC2.ItemDelegate {
 
         QQC2.ToolButton {
             visible: hostDelegate.hovered
-            icon.name: "system-file-manager"
-            icon.width: Kirigami.Units.iconSizes.small
-            icon.height: Kirigami.Units.iconSizes.small
             Layout.preferredWidth: Kirigami.Units.iconSizes.medium
             Layout.preferredHeight: Kirigami.Units.iconSizes.medium
             QQC2.ToolTip.text: i18n("Open in File Manager")
             QQC2.ToolTip.visible: hovered
             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
             onClicked: root.openSftp(itemData.host, itemData.user, itemData.hostname)
+            contentItem: Kirigami.Icon {
+                source: "folder"
+                isMask: true
+                implicitWidth: Kirigami.Units.iconSizes.small
+                implicitHeight: Kirigami.Units.iconSizes.small
+            }
         }
     }
 
@@ -141,7 +144,7 @@ QQC2.ItemDelegate {
 
             QQC2.MenuItem {
                 text: i18n("Open in File Manager")
-                icon.name: "system-file-manager"
+                icon.name: "folder"
                 onTriggered: root.openSftp(itemData.host, itemData.user, itemData.hostname)
             }
 
