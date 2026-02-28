@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="docs/squissh-icon.png" alt="SquiSSH" width="128">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/squissh-icon-light.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/squissh-icon-dark.png">
+    <img src="docs/squissh-icon-dark.png" alt="SquiSSH" width="128">
+  </picture>
 </p>
 
 <h1 align="center">SquiSSH</h1>
