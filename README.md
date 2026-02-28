@@ -12,7 +12,9 @@
   A KDE Plasma 6 system tray widget for quick SSH connections from your <code>~/.ssh/config</code>.
 </p>
 
-<!-- TODO: Add screenshot -->
+<p align="center">
+  <img src="docs/Screenshot_1.png" alt="SquiSSH screenshot" width="400">
+</p>
 
 ## Features
 
@@ -24,7 +26,7 @@
 - **Local host support** — hosts with `localhost` / `127.0.0.1` / `::1` open a terminal directly
 - **Connection history** with "Recent" group showing last 24 hours
 - **Wake-on-LAN** via `#MAC` directive (right-click offline hosts)
-- **Per-host custom commands** via `#Command` directive
+- **Per-host custom commands** via `#Command` directive (with optional display names)
 - Pin favorite hosts to the top
 - Live online/offline status via ping
 - Search/filter hosts, or connect to arbitrary hostnames
@@ -63,7 +65,7 @@ SquiSSH reads your standard `~/.ssh/config` and adds optional directives via com
 ```ssh-config
 # GroupStart Production
 # Icon network-server-database
-# Command tail -f /var/log/syslog
+# Command [View Logs] tail -f /var/log/syslog
 # Command systemctl status nginx
 Host prod-db
     HostName 10.0.1.10
@@ -100,7 +102,7 @@ Host personal-vps
 | `# GroupEnd` | Close the current group |
 | `# Icon <name or path>` | Set a KDE icon or image path for the next host |
 | `# MAC <xx:xx:xx:xx:xx:xx>` | Set MAC address for Wake-on-LAN on the next host |
-| `# Command <command>` | Add a custom command for the next host (repeatable) |
+| `# Command [Name] <command>` | Add a custom command with optional display name (repeatable) |
 
 These are standard SSH comments and won't affect your SSH connections.
 

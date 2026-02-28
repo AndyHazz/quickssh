@@ -1,6 +1,10 @@
 *.swp
 *~
 .directory
+.DS_Store
+.vscode/
 .worktrees/
 node_modules/
+coverage/
+docs/plans/
 *.plasmoid
