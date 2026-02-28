@@ -394,9 +394,13 @@ PlasmoidItem {
 
     function runHostCommand(hostAlias, command) {
         var host = findHost(hostAlias)
-        var cmd = (host && isLocalHost(host.hostname))
-            ? plasmoid.configuration.terminalCommand + " " + command
-            : plasmoid.configuration.terminalCommand + " ssh -t " + hostAlias + " " + command
+        var escaped = command.replace(/'/g, "'\\''")
+        var cmd
+        if (host && isLocalHost(host.hostname)) {
+            cmd = plasmoid.configuration.terminalCommand + " sh -c '" + escaped + "'"
+        } else {
+            cmd = plasmoid.configuration.terminalCommand + " ssh -t " + hostAlias + " '" + escaped + "'"
+        }
         launcher.connectSource(cmd)
         root.expanded = false
     }
