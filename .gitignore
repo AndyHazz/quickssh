@@ -3,3 +3,4 @@
 .directory
 .worktrees/
 node_modules/
+*.plasmoid
