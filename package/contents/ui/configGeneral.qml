@@ -43,6 +43,8 @@ KCMUtils.SimpleKCM {
     property string cfg_connectionHistoryDefault
     property string cfg_cachedHosts
     property string cfg_cachedHostsDefault
+    property string cfg_sshConfigText
+    property string cfg_sshConfigTextDefault
 
     Kirigami.FormLayout {
         anchors.left: parent.left

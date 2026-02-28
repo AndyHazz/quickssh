@@ -12,12 +12,24 @@
  *   Host <name>         — start host entry (skip wildcards)
  *   HostName <value>    — set hostname
  *   User <value>        — set user
+ *   Port <value>        — set port
+ *   IdentityFile <value> — set identity file
+ *   <Key> <value>       — any other directive captured in options[]
  *
- * Returns: { groups: [{name: string, hosts: [{host, hostname, user, icon, mac, commands}]}] }
+ * Preserves:
+ *   Host * / Host web-? — wildcard blocks stored as raw text in rawBlocks[]
+ *   Match blocks        — stored as raw text in rawBlocks[]
+ *   Include directives  — stored as raw text in rawBlocks[]
+ *
+ * Returns: {
+ *   groups: [{name: string, hosts: [{host, hostname, user, port, identityFile, icon, mac, commands, options}]}],
+ *   rawBlocks: string[]  — unmanaged content (wildcards, Match, Include) preserved for round-trip
+ * }
  */
 function parseConfig(text) {
     var lines = text.split("\n")
     var groups = []
+    var rawBlocks = []
     var currentGroupName = ""
     var currentGroup = { name: "", hosts: [] }
     var currentHost = null
@@ -25,12 +37,36 @@ function parseConfig(text) {
     var pendingMac = ""
     var pendingCommands = []
 
+    // Track wildcard/unmanaged host blocks
+    var inWildcardBlock = false
+    var wildcardLines = []
+
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i].trim()
+        var rawLine = lines[i]
+
+        // If we're collecting a wildcard block, check if it ends
+        if (inWildcardBlock) {
+            // A new Host, Match, GroupStart, or top-level directive ends the wildcard block
+            var endsBlock = line.match(/^Host\s+/i) ||
+                            line.match(/^Match\s+/i) ||
+                            line.match(/^#\s*GroupStart\s+/i) ||
+                            line.match(/^#\s*GroupEnd/i)
+            if (endsBlock) {
+                rawBlocks.push(wildcardLines.join("\n"))
+                wildcardLines = []
+                inWildcardBlock = false
+                // Fall through to process this line normally
+            } else {
+                // Continue collecting wildcard block lines
+                wildcardLines.push(rawLine)
+                continue
+            }
+        }
 
         // Group directives
-        if (line.match(/^#\s*GroupStart\s+(.+)/i)) {
-            var match = line.match(/^#\s*GroupStart\s+(.+)/i)
+        var groupStartMatch = line.match(/^#\s*GroupStart\s+(.+)/i)
+        if (groupStartMatch) {
             if (currentHost) {
                 currentGroup.hosts.push(currentHost)
                 currentHost = null
@@ -38,7 +74,7 @@ function parseConfig(text) {
             if (currentGroup.hosts.length > 0) {
                 groups.push(currentGroup)
             }
-            currentGroupName = match[1].trim()
+            currentGroupName = groupStartMatch[1].trim()
             currentGroup = { name: currentGroupName, hosts: [] }
             continue
         }
@@ -57,23 +93,36 @@ function parseConfig(text) {
         }
 
         // Icon directive
-        if (line.match(/^#\s*Icon\s+(.+)/i)) {
-            var iconMatch = line.match(/^#\s*Icon\s+(.+)/i)
+        var iconMatch = line.match(/^#\s*Icon\s+(.+)/i)
+        if (iconMatch) {
             pendingIcon = iconMatch[1].trim()
             continue
         }
 
         // MAC directive (for Wake-on-LAN)
-        if (line.match(/^#\s*MAC\s+([0-9A-Fa-f:]{17})/i)) {
-            var macMatch = line.match(/^#\s*MAC\s+([0-9A-Fa-f:]{17})/i)
+        var macMatch = line.match(/^#\s*MAC\s+([0-9A-Fa-f:]{17})/i)
+        if (macMatch) {
             pendingMac = macMatch[1].trim()
             continue
         }
 
         // Command directive (repeatable — accumulates into array)
-        if (line.match(/^#\s*Command\s+(.+)/i)) {
-            var cmdMatch = line.match(/^#\s*Command\s+(.+)/i)
+        var cmdMatch = line.match(/^#\s*Command\s+(.+)/i)
+        if (cmdMatch) {
             pendingCommands.push(cmdMatch[1].trim())
+            continue
+        }
+
+        // Include directive — preserve as raw block
+        if (line.match(/^Include\s+/i)) {
+            rawBlocks.push(rawLine)
+            continue
+        }
+
+        // Match block — preserve as raw block (collect until next Host/Match/end)
+        if (line.match(/^Match\s+/i)) {
+            inWildcardBlock = true
+            wildcardLines = [rawLine]
             continue
         }
 
@@ -83,9 +132,29 @@ function parseConfig(text) {
         }
 
         // Host directive
-        if (line.match(/^Host\s+(.+)/i)) {
-            var hostMatch = line.match(/^Host\s+(.+)/i)
+        var hostMatch = line.match(/^Host\s+(.+)/i)
+        if (hostMatch) {
             var hostNames = hostMatch[1].trim().split(/\s+/)
+
+            // Check if ALL names are wildcards
+            var allWildcard = true
+            for (var w = 0; w < hostNames.length; w++) {
+                if (hostNames[w].indexOf("*") === -1 && hostNames[w].indexOf("?") === -1) {
+                    allWildcard = false
+                    break
+                }
+            }
+
+            if (allWildcard) {
+                // Start collecting a wildcard block
+                inWildcardBlock = true
+                wildcardLines = [rawLine]
+                // Reset pending directives since they were meant for this host
+                pendingIcon = ""
+                pendingMac = ""
+                pendingCommands = []
+                continue
+            }
 
             // Save previous host
             if (currentHost) {
@@ -106,10 +175,13 @@ function parseConfig(text) {
                         host: name,
                         hostname: name,
                         user: "",
+                        port: "",
+                        identityFile: "",
                         icon: pendingIcon || "network-server",
                         status: "unknown",
                         mac: pendingMac,
-                        commands: pendingCommands.slice()
+                        commands: pendingCommands.slice(),
+                        options: []
                     }
                 } else {
                     // Push previous and start new for multi-host
@@ -118,10 +190,13 @@ function parseConfig(text) {
                         host: name,
                         hostname: name,
                         user: "",
+                        port: "",
+                        identityFile: "",
                         icon: pendingIcon || "network-server",
                         status: "unknown",
                         mac: pendingMac,
-                        commands: pendingCommands.slice()
+                        commands: pendingCommands.slice(),
+                        options: []
                     }
                 }
             }
@@ -133,12 +208,40 @@ function parseConfig(text) {
 
         // Host properties
         if (currentHost) {
-            if (line.match(/^HostName\s+(.+)/i)) {
-                currentHost.hostname = line.match(/^HostName\s+(.+)/i)[1].trim()
-            } else if (line.match(/^User\s+(.+)/i)) {
-                currentHost.user = line.match(/^User\s+(.+)/i)[1].trim()
+            var hostnameMatch = line.match(/^HostName\s+(.+)/i)
+            if (hostnameMatch) {
+                currentHost.hostname = hostnameMatch[1].trim()
+            } else {
+                var userMatch = line.match(/^User\s+(.+)/i)
+                if (userMatch) {
+                    currentHost.user = userMatch[1].trim()
+                } else {
+                    var portMatch = line.match(/^Port\s+(.+)/i)
+                    if (portMatch) {
+                        currentHost.port = portMatch[1].trim()
+                    } else {
+                        var idMatch = line.match(/^IdentityFile\s+(.+)/i)
+                        if (idMatch) {
+                            currentHost.identityFile = idMatch[1].trim()
+                        } else {
+                            // Capture any other SSH directive as a key-value option
+                            var optMatch = line.match(/^(\S+)\s+(.*)/i)
+                            if (optMatch) {
+                                currentHost.options.push({
+                                    key: optMatch[1],
+                                    value: optMatch[2].trim()
+                                })
+                            }
+                        }
+                    }
+                }
             }
         }
+    }
+
+    // Flush any remaining wildcard block
+    if (inWildcardBlock && wildcardLines.length > 0) {
+        rawBlocks.push(wildcardLines.join("\n"))
     }
 
     // Don't forget the last host/group
@@ -149,7 +252,7 @@ function parseConfig(text) {
         groups.push(currentGroup)
     }
 
-    return { groups: groups }
+    return { groups: groups, rawBlocks: rawBlocks }
 }
 
 // Allow Node.js test runners to import this module

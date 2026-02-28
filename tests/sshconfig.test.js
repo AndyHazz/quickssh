@@ -11,15 +11,17 @@ describe('parseConfig', () => {
     // ── Empty / trivial input ────────────────────────────────────────
 
     it('returns empty groups for empty string', () => {
-        expect(parseConfig('')).toEqual({ groups: [] })
+        const result = parseConfig('')
+        expect(result.groups).toEqual([])
+        expect(result.rawBlocks).toEqual([])
     })
 
     it('returns empty groups for whitespace-only input', () => {
-        expect(parseConfig('   \n\n   \n')).toEqual({ groups: [] })
+        expect(parseConfig('   \n\n   \n').groups).toEqual([])
     })
 
     it('returns empty groups for comments-only input', () => {
-        expect(parseConfig('# just a comment\n# another comment')).toEqual({ groups: [] })
+        expect(parseConfig('# just a comment\n# another comment').groups).toEqual([])
     })
 
     // ── Basic host parsing ───────────────────────────────────────────
@@ -32,10 +34,13 @@ describe('parseConfig', () => {
         expect(host.host).toBe('myserver')
         expect(host.hostname).toBe('10.0.0.1')
         expect(host.user).toBe('admin')
+        expect(host.port).toBe('')
+        expect(host.identityFile).toBe('')
         expect(host.icon).toBe('network-server')
         expect(host.status).toBe('unknown')
         expect(host.mac).toBe('')
         expect(host.commands).toEqual([])
+        expect(host.options).toEqual([])
     })
 
     it('parses multiple hosts from fixture', () => {
@@ -55,6 +60,84 @@ describe('parseConfig', () => {
         const host = result.groups[0].hosts[0]
         expect(host.host).toBe('mybox')
         expect(host.hostname).toBe('mybox')
+    })
+
+    // ── Port and IdentityFile ────────────────────────────────────────
+
+    it('parses Port as a dedicated field', () => {
+        const result = parseConfig('Host myserver\n  HostName 10.0.0.1\n  Port 2222')
+        const host = result.groups[0].hosts[0]
+        expect(host.port).toBe('2222')
+    })
+
+    it('parses IdentityFile as a dedicated field', () => {
+        const result = parseConfig('Host myserver\n  HostName 10.0.0.1\n  IdentityFile ~/.ssh/id_rsa')
+        const host = result.groups[0].hosts[0]
+        expect(host.identityFile).toBe('~/.ssh/id_rsa')
+    })
+
+    it('parses Port case-insensitively', () => {
+        const result = parseConfig('Host myserver\n  port 3333')
+        expect(result.groups[0].hosts[0].port).toBe('3333')
+    })
+
+    it('parses IdentityFile case-insensitively', () => {
+        const result = parseConfig('Host myserver\n  identityfile /tmp/key')
+        expect(result.groups[0].hosts[0].identityFile).toBe('/tmp/key')
+    })
+
+    // ── Additional options capture ───────────────────────────────────
+
+    it('captures unknown SSH directives in options[]', () => {
+        const input = 'Host myserver\n  HostName 10.0.0.1\n  ProxyJump bastion\n  ForwardAgent yes'
+        const result = parseConfig(input)
+        const host = result.groups[0].hosts[0]
+        expect(host.options).toEqual([
+            { key: 'ProxyJump', value: 'bastion' },
+            { key: 'ForwardAgent', value: 'yes' }
+        ])
+    })
+
+    it('preserves option ordering', () => {
+        const input = [
+            'Host myserver',
+            '  ServerAliveInterval 60',
+            '  ServerAliveCountMax 3',
+            '  Compression yes'
+        ].join('\n')
+        const result = parseConfig(input)
+        const opts = result.groups[0].hosts[0].options
+        expect(opts[0].key).toBe('ServerAliveInterval')
+        expect(opts[1].key).toBe('ServerAliveCountMax')
+        expect(opts[2].key).toBe('Compression')
+    })
+
+    it('does not put known directives in options[]', () => {
+        const input = 'Host myserver\n  HostName 10.0.0.1\n  User admin\n  Port 22\n  IdentityFile ~/.ssh/key'
+        const result = parseConfig(input)
+        expect(result.groups[0].hosts[0].options).toEqual([])
+    })
+
+    it('handles mixed known and unknown directives', () => {
+        const input = [
+            'Host myserver',
+            '  HostName 10.0.0.1',
+            '  User admin',
+            '  Port 2222',
+            '  ProxyJump bastion',
+            '  IdentityFile ~/.ssh/id_rsa',
+            '  ForwardAgent yes'
+        ].join('\n')
+        const result = parseConfig(input)
+        const host = result.groups[0].hosts[0]
+        expect(host.hostname).toBe('10.0.0.1')
+        expect(host.user).toBe('admin')
+        expect(host.port).toBe('2222')
+        expect(host.identityFile).toBe('~/.ssh/id_rsa')
+        expect(host.options).toEqual([
+            { key: 'ProxyJump', value: 'bastion' },
+            { key: 'ForwardAgent', value: 'yes' }
+        ])
     })
 
     // ── Case insensitivity ───────────────────────────────────────────
@@ -454,5 +537,117 @@ describe('parseConfig', () => {
         const input = '#  GroupStart  Spaced Group  \nHost s\n  HostName 1.2.3.4\n#  GroupEnd'
         const result = parseConfig(input)
         expect(result.groups[0].name).toBe('Spaced Group')
+    })
+
+    // ── rawBlocks: wildcard host preservation ─────────────────────────
+
+    it('preserves Host * blocks in rawBlocks', () => {
+        const input = [
+            'Host *',
+            '    ServerAliveInterval 60',
+            '    ServerAliveCountMax 3',
+            '',
+            'Host myserver',
+            '    HostName 10.0.0.1'
+        ].join('\n')
+        const result = parseConfig(input)
+        expect(result.groups).toHaveLength(1)
+        expect(result.groups[0].hosts[0].host).toBe('myserver')
+        expect(result.rawBlocks).toHaveLength(1)
+        expect(result.rawBlocks[0]).toContain('Host *')
+        expect(result.rawBlocks[0]).toContain('ServerAliveInterval 60')
+        expect(result.rawBlocks[0]).toContain('ServerAliveCountMax 3')
+    })
+
+    it('preserves Host * block at end of file', () => {
+        const input = [
+            'Host myserver',
+            '    HostName 10.0.0.1',
+            '',
+            'Host *',
+            '    ForwardAgent no'
+        ].join('\n')
+        const result = parseConfig(input)
+        expect(result.groups).toHaveLength(1)
+        expect(result.rawBlocks).toHaveLength(1)
+        expect(result.rawBlocks[0]).toContain('Host *')
+        expect(result.rawBlocks[0]).toContain('ForwardAgent no')
+    })
+
+    it('preserves Host ? pattern blocks in rawBlocks', () => {
+        const input = 'Host web-?\n  User webadmin\n  Port 2222\n\nHost real\n  HostName 10.0.0.1'
+        const result = parseConfig(input)
+        expect(result.groups).toHaveLength(1)
+        expect(result.groups[0].hosts[0].host).toBe('real')
+        expect(result.rawBlocks).toHaveLength(1)
+        expect(result.rawBlocks[0]).toContain('Host web-?')
+        expect(result.rawBlocks[0]).toContain('User webadmin')
+    })
+
+    it('preserves multiple wildcard blocks', () => {
+        const input = [
+            'Host *',
+            '    ServerAliveInterval 60',
+            '',
+            'Host myserver',
+            '    HostName 10.0.0.1',
+            '',
+            'Host *.internal',
+            '    ProxyJump bastion'
+        ].join('\n')
+        const result = parseConfig(input)
+        expect(result.rawBlocks).toHaveLength(2)
+    })
+
+    // ── rawBlocks: Include directive preservation ─────────────────────
+
+    it('preserves Include directives in rawBlocks', () => {
+        const input = [
+            'Include ~/.ssh/config.d/*',
+            '',
+            'Host myserver',
+            '    HostName 10.0.0.1'
+        ].join('\n')
+        const result = parseConfig(input)
+        expect(result.groups).toHaveLength(1)
+        expect(result.rawBlocks).toHaveLength(1)
+        expect(result.rawBlocks[0]).toContain('Include ~/.ssh/config.d/*')
+    })
+
+    // ── rawBlocks: Match block preservation ───────────────────────────
+
+    it('preserves Match blocks in rawBlocks', () => {
+        const input = [
+            'Match host bastion',
+            '    ForwardAgent yes',
+            '    IdentityFile ~/.ssh/bastion_key',
+            '',
+            'Host myserver',
+            '    HostName 10.0.0.1'
+        ].join('\n')
+        const result = parseConfig(input)
+        expect(result.groups).toHaveLength(1)
+        expect(result.rawBlocks).toHaveLength(1)
+        expect(result.rawBlocks[0]).toContain('Match host bastion')
+        expect(result.rawBlocks[0]).toContain('ForwardAgent yes')
+    })
+
+    it('resets pending directives when hitting a wildcard host', () => {
+        const input = [
+            '# Icon custom-icon',
+            '# MAC aa:bb:cc:dd:ee:ff',
+            '# Command do-thing',
+            'Host *',
+            '    ServerAliveInterval 60',
+            '',
+            'Host myserver',
+            '    HostName 10.0.0.1'
+        ].join('\n')
+        const result = parseConfig(input)
+        const host = result.groups[0].hosts[0]
+        // Pending directives were reset, not applied to myserver
+        expect(host.icon).toBe('network-server')
+        expect(host.mac).toBe('')
+        expect(host.commands).toEqual([])
     })
 })

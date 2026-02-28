@@ -364,8 +364,30 @@ PlasmoidItem {
 
     Component.onCompleted: loadConfig()
 
+    // Write SSH config to disk when Apply is clicked in the Hosts config page
+    Plasma5Support.DataSource {
+        id: configWriter
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            disconnectSource(sourceName)
+            root.loadConfig()
+        }
+    }
+
     Connections {
         target: plasmoid.configuration
         function onSshConfigPathChanged() { root.loadConfig() }
+        function onSshConfigTextChanged() {
+            var text = plasmoid.configuration.sshConfigText
+            if (!text || text === "") return
+            var path = plasmoid.configuration.sshConfigPath || "~/.ssh/config"
+            path = path.replace("~", "$HOME")
+            var encoded = Qt.btoa(text)
+            var cmd = "cp -p \"" + path + "\" \"" + path + ".bak\" 2>/dev/null; " +
+                      "printf '%s' " + encoded + " | base64 -d | tee \"" + path + "\" > /dev/null && " +
+                      "chmod 600 \"" + path + "\""
+            configWriter.connectSource(cmd)
+        }
     }
 }

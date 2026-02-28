@@ -56,5 +56,8 @@
     <entry name="cachedHosts" type="String">
       <default></default>
     </entry>
+    <entry name="sshConfigText" type="String">
+      <default></default>
+    </entry>
   </group>
 </kcfg>

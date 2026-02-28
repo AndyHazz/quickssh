@@ -7,6 +7,11 @@ ConfigModel {
         source: "configGeneral.qml"
     }
     ConfigCategory {
+        name: i18n("SSH Hosts")
+        icon: "network-server"
+        source: "configHosts.qml"
+    }
+    ConfigCategory {
         name: i18n("SSH Config Help")
         icon: "help-contents"
         source: "configHelp.qml"
