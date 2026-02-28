@@ -380,14 +380,6 @@ describe('parseConfig', () => {
         ])
     })
 
-    it('parses an unnamed command as {name: "", cmd: "..."}', () => {
-        const input = '# Command restart-nginx\nHost server\n  HostName 10.0.0.1'
-        const result = parseConfig(input)
-        expect(result.groups[0].hosts[0].commands).toEqual([
-            { name: '', cmd: 'restart-nginx' }
-        ])
-    })
-
     it('parses mixed named and unnamed commands', () => {
         const input = [
             '# Command [Deploy] deploy.sh --prod',

@@ -259,13 +259,40 @@ describe('serializeConfig', () => {
                 identityFile: "",
                 icon: "",
                 mac: "",
-                commands: ["restart-nginx", "tail -f /var/log/syslog"],
+                commands: [
+                    { name: "", cmd: "restart-nginx" },
+                    { name: "", cmd: "tail -f /var/log/syslog" }
+                ],
                 options: []
             }]
         }]
         const result = serializeConfig(groups)
         expect(result).toContain("# Command restart-nginx")
         expect(result).toContain("# Command tail -f /var/log/syslog")
+    })
+
+    it('writes named commands with [bracket] prefix', () => {
+        const groups = [{
+            name: "",
+            hosts: [{
+                host: "server",
+                hostname: "10.0.0.1",
+                user: "",
+                port: "",
+                identityFile: "",
+                icon: "",
+                mac: "",
+                commands: [
+                    { name: "Deploy", cmd: "deploy.sh --prod" },
+                    { name: "", cmd: "check-logs" }
+                ],
+                options: []
+            }]
+        }]
+        const result = serializeConfig(groups)
+        expect(result).toContain("# Command [Deploy] deploy.sh --prod")
+        expect(result).toContain("# Command check-logs")
+        expect(result).not.toContain("# Command []")
     })
 
     // ── Additional SSH options ────────────────────────────────────────
@@ -356,7 +383,7 @@ describe('serializeConfig', () => {
                 identityFile: "",
                 icon: "server-database",
                 mac: "aa:bb:cc:dd:ee:ff",
-                commands: ["cmd1"],
+                commands: [{ name: "", cmd: "cmd1" }],
                 options: []
             }]
         }]
@@ -565,7 +592,7 @@ describe('serializeConfig', () => {
         expect(main.host).toBe('main-server')
         expect(main.icon).toBe('server-database')
         expect(main.mac).toBe('aa:bb:cc:dd:ee:ff')
-        expect(main.commands).toEqual(['restart-nginx', 'check-logs'])
+        expect(main.commands).toEqual([{ name: '', cmd: 'restart-nginx' }, { name: '', cmd: 'check-logs' }])
 
         const backup = parsed2.groups[0].hosts[1]
         expect(backup.host).toBe('backup-server')
@@ -680,5 +707,24 @@ describe('serializeConfig', () => {
         expect(parsed2.rawBlocks).toHaveLength(1)
         expect(parsed2.rawBlocks[0]).toContain('Include ~/.ssh/config.d/*')
         expect(parsed2.groups[0].hosts[0].host).toBe('myserver')
+    })
+
+    it('round-trips named commands through parse → serialize → parse', () => {
+        const input = [
+            '# Command [Deploy App] deploy.sh --prod',
+            '# Command check-logs',
+            'Host server',
+            '    HostName 10.0.0.1',
+            ''
+        ].join('\n')
+
+        const parsed1 = parseConfig(input)
+        const serialized = serializeConfig(parsed1.groups, parsed1.rawBlocks)
+        const parsed2 = parseConfig(serialized)
+
+        expect(parsed2.groups[0].hosts[0].commands).toEqual([
+            { name: 'Deploy App', cmd: 'deploy.sh --prod' },
+            { name: '', cmd: 'check-logs' }
+        ])
     })
 })

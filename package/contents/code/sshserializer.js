@@ -46,7 +46,12 @@ function serializeConfig(groups, rawBlocks) {
             }
             if (host.commands) {
                 for (var c = 0; c < host.commands.length; c++) {
-                    lines.push("# Command " + host.commands[c])
+                    var cmd = host.commands[c]
+                    if (typeof cmd === "object") {
+                        lines.push("# Command " + (cmd.name ? "[" + cmd.name + "] " : "") + cmd.cmd)
+                    } else {
+                        lines.push("# Command " + cmd)
+                    }
                 }
             }
 

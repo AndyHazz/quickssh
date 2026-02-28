@@ -8,7 +8,7 @@
  *   #GroupEnd           — close current group
  *   #Icon <name>        — set icon for next Host block
  *   #MAC xx:xx:xx:xx:xx:xx — set MAC address for next Host (Wake-on-LAN)
- *   #Command <cmd>      — add custom command for next Host (repeatable)
+ *   #Command [Name] <cmd>  — add named command (name is optional)
  *   Host <name>         — start host entry (skip wildcards)
  *   HostName <value>    — set hostname
  *   User <value>        — set user
@@ -22,7 +22,7 @@
  *   Include directives  — stored as raw text in rawBlocks[]
  *
  * Returns: {
- *   groups: [{name: string, hosts: [{host, hostname, user, port, identityFile, icon, mac, commands, options}]}],
+ *   groups: [{name: string, hosts: [{host, hostname, user, port, identityFile, icon, mac, commands: [{name, cmd}], options}]}],
  *   rawBlocks: string[]  — unmanaged content (wildcards, Match, Include) preserved for round-trip
  * }
  */
