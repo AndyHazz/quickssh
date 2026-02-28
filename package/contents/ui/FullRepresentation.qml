@@ -197,7 +197,7 @@ PlasmaExtras.Representation {
                     visible: hostListView.count === 0 && root.configLoaded
                     text: root.searchText !== ""
                         ? i18n("No matching hosts — press Enter to connect to \"%1\"", root.searchText)
-                        : i18n("No SSH hosts configured")
+                        : i18n("No SSH hosts available")
                     iconName: root.searchText !== "" ? "go-next" : "network-disconnect"
                 }
             }
@@ -221,20 +221,35 @@ PlasmaExtras.Representation {
         }
     }
 
+    function sortHostsList(hosts, order) {
+        if (order === "alphabetical") {
+            hosts.sort(function(a, b) {
+                return a.host.toLowerCase().localeCompare(b.host.toLowerCase())
+            })
+        } else if (order === "recent") {
+            hosts.sort(function(a, b) {
+                var aTime = root.connectionHistory[a.host] || 0
+                var bTime = root.connectionHistory[b.host] || 0
+                if (aTime !== bTime) return bTime - aTime
+                return 0
+            })
+        }
+    }
+
     function buildFilteredModel() {
         var items = []
         var search = root.searchText.toLowerCase()
         var hideOffline = plasmoid.configuration.hideUnreachable
         var grouping = plasmoid.configuration.enableGrouping
+        var sortOrder = plasmoid.configuration.sortOrder || "config"
+        var showRecentGroup = grouping && sortOrder !== "recent"
         var favSet = {}
         for (var f = 0; f < root.favorites.length; f++) {
             favSet[root.favorites[f]] = true
         }
 
-        // Collect favorites and recent hosts from all groups
         var favoriteHosts = []
         var recentHosts = []
-        var recentSet = {}
         var now = Date.now()
         var oneDayMs = 24 * 60 * 60 * 1000
 
@@ -255,9 +270,8 @@ PlasmaExtras.Representation {
 
                 if (favSet[h.host]) {
                     favoriteHosts.push(h)
-                } else if (isRecent) {
+                } else if (showRecentGroup && isRecent) {
                     recentHosts.push(h)
-                    recentSet[h.host] = true
                 } else {
                     filteredHosts.push(h)
                 }
@@ -267,6 +281,8 @@ PlasmaExtras.Representation {
                 if (grouping) {
                     var groupName = group.name || i18n("Ungrouped")
                     var collapsed = root.isGroupCollapsed(groupName)
+
+                    sortHostsList(filteredHosts, sortOrder)
 
                     items.push({
                         isHeader: true,
@@ -284,13 +300,28 @@ PlasmaExtras.Representation {
             }
         }
 
-        // Sort recent hosts by most recent first
-        recentHosts.sort(function(a, b) {
-            return (root.connectionHistory[b.host] || 0) - (root.connectionHistory[a.host] || 0)
-        })
+        // When ungrouped, sort the entire flat list
+        if (!grouping) {
+            if (sortOrder === "alphabetical") {
+                items.sort(function(a, b) {
+                    return a.host.toLowerCase().localeCompare(b.host.toLowerCase())
+                })
+            } else if (sortOrder === "recent") {
+                items.sort(function(a, b) {
+                    var aTime = a.lastConnected || 0
+                    var bTime = b.lastConnected || 0
+                    if (aTime !== bTime) return bTime - aTime
+                    return 0
+                })
+            }
+        }
 
-        // Prepend Recent section (after Favorites, before normal groups)
-        if (recentHosts.length > 0) {
+        // Prepend Recent section (only when grouped and not sorting by recent)
+        if (showRecentGroup && recentHosts.length > 0) {
+            recentHosts.sort(function(a, b) {
+                return (root.connectionHistory[b.host] || 0) - (root.connectionHistory[a.host] || 0)
+            })
+
             var recentCollapsed = root.isGroupCollapsed(i18n("Recent"))
             items.unshift({
                 isHeader: true,
@@ -307,6 +338,7 @@ PlasmaExtras.Representation {
 
         // Prepend favorites section
         if (favoriteHosts.length > 0) {
+            sortHostsList(favoriteHosts, sortOrder)
             if (grouping) {
                 items.unshift({
                     isHeader: true,

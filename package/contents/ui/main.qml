@@ -332,7 +332,7 @@ PlasmoidItem {
     }
 
     function runHostCommand(hostAlias, command) {
-        var cmd = plasmoid.configuration.terminalCommand + " ssh " + hostAlias + " " + command
+        var cmd = plasmoid.configuration.terminalCommand + " ssh -t " + hostAlias + " " + command
         launcher.connectSource(cmd)
         root.expanded = false
     }

@@ -11,7 +11,7 @@
     "Id": "com.github.andyhazz.quickssh",
     "Name": "Quick SSH",
     "EnabledByDefault": true,
-    "Version": "1.1.0",
+    "Version": "1.2.0",
     "License": "GPL-3.0",
     "BugReportUrl": "https://github.com/AndyHazz/quickssh/issues",
     "Website": "https://github.com/AndyHazz/quickssh"

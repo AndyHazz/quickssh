@@ -21,6 +21,8 @@ KCMUtils.SimpleKCM {
     property bool cfg_hideUnreachableDefault
     property alias cfg_enableGrouping: enableGroupingCheck.checked
     property bool cfg_enableGroupingDefault
+    property string cfg_sortOrder
+    property string cfg_sortOrderDefault
     property alias cfg_enableSearch: enableSearchCheck.checked
     property bool cfg_enableSearchDefault
     property alias cfg_notifyOnStatusChange: notifyOnStatusChangeCheck.checked
@@ -137,6 +139,17 @@ KCMUtils.SimpleKCM {
         QQC2.CheckBox {
             id: enableGroupingCheck
             Kirigami.FormData.label: i18n("Group hosts:")
+        }
+
+        QQC2.ComboBox {
+            id: sortOrderCombo
+            Kirigami.FormData.label: i18n("Sort order:")
+            model: [i18n("SSH config order"), i18n("Recently accessed"), i18n("Alphabetical")]
+            currentIndex: cfg_sortOrder === "recent" ? 1 : cfg_sortOrder === "alphabetical" ? 2 : 0
+            onActivated: {
+                var values = ["config", "recent", "alphabetical"]
+                cfg_sortOrder = values[currentIndex]
+            }
         }
 
         QQC2.CheckBox {

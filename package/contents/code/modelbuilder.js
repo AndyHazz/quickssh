@@ -25,6 +25,29 @@ function hostItem(h, history, discovered) {
 }
 
 /**
+ * Sort an array of host objects by the given sort order.
+ *
+ * @param {Array} hosts   - array of host objects
+ * @param {string} order  - "config", "recent", or "alphabetical"
+ * @param {object} history - connectionHistory map {alias: timestamp}
+ */
+function sortHosts(hosts, order, history) {
+    if (order === "alphabetical") {
+        hosts.sort(function(a, b) {
+            return a.host.toLowerCase().localeCompare(b.host.toLowerCase())
+        })
+    } else if (order === "recent") {
+        hosts.sort(function(a, b) {
+            var aTime = (history[a.host] || 0)
+            var bTime = (history[b.host] || 0)
+            if (aTime !== bTime) return bTime - aTime
+            return 0 // preserve config order for never-connected hosts
+        })
+    }
+    // "config" — no sorting, preserve original order
+}
+
+/**
  * Build the filtered display model from parsed config groups.
  *
  * @param {object} opts
@@ -32,6 +55,7 @@ function hostItem(h, history, discovered) {
  * @param {string} opts.searchText        - current search filter (lowercased)
  * @param {boolean} opts.hideUnreachable  - whether to hide offline hosts
  * @param {boolean} opts.enableGrouping   - whether to show group headers
+ * @param {string} opts.sortOrder         - "config", "recent", or "alphabetical"
  * @param {string[]} opts.favorites       - list of favorite host aliases
  * @param {string[]} opts.collapsedGroups - list of collapsed group names
  * @param {object} opts.connectionHistory - {alias: timestamp} map
@@ -45,6 +69,7 @@ function buildFilteredModel(opts) {
     var search = (opts.searchText || "").toLowerCase()
     var hideOffline = opts.hideUnreachable || false
     var grouping = opts.enableGrouping !== false
+    var sortOrder = opts.sortOrder || "config"
     var history = opts.connectionHistory || {}
     var now = opts.now || Date.now()
     var oneDayMs = 24 * 60 * 60 * 1000
@@ -64,6 +89,9 @@ function buildFilteredModel(opts) {
     function isGroupCollapsed(groupName) {
         return !!collapsedSet[groupName]
     }
+
+    // Whether to create a separate "Recent" section
+    var showRecentGroup = grouping && sortOrder !== "recent"
 
     var favoriteHosts = []
     var recentHosts = []
@@ -86,7 +114,7 @@ function buildFilteredModel(opts) {
 
             if (favSet[h.host]) {
                 favoriteHosts.push(h)
-            } else if (isRecent) {
+            } else if (showRecentGroup && isRecent) {
                 recentHosts.push(h)
             } else {
                 filteredHosts.push(h)
@@ -98,6 +126,8 @@ function buildFilteredModel(opts) {
                 var groupName = group.name || "Ungrouped"
                 var groupCollapsed = isGroupCollapsed(groupName)
 
+                sortHosts(filteredHosts, sortOrder, history)
+
                 items.push({
                     isHeader: true,
                     groupName: groupName,
@@ -108,19 +138,40 @@ function buildFilteredModel(opts) {
                 if (groupCollapsed) continue
             }
 
+            if (!grouping) {
+                // Flat mode: just collect, sort later
+            }
+
             for (var k = 0; k < filteredHosts.length; k++) {
                 items.push(hostItem(filteredHosts[k], history, false))
             }
         }
     }
 
-    // Sort recent hosts by most recent first
-    recentHosts.sort(function(a, b) {
-        return (history[b.host] || 0) - (history[a.host] || 0)
-    })
+    // When ungrouped, sort the entire flat list
+    if (!grouping) {
+        sortHosts(items.map(function(it) { return it }), sortOrder, history)
+        // Re-sort items in place by extracting host objects
+        if (sortOrder === "alphabetical") {
+            items.sort(function(a, b) {
+                return a.host.toLowerCase().localeCompare(b.host.toLowerCase())
+            })
+        } else if (sortOrder === "recent") {
+            items.sort(function(a, b) {
+                var aTime = (a.lastConnected || 0)
+                var bTime = (b.lastConnected || 0)
+                if (aTime !== bTime) return bTime - aTime
+                return 0
+            })
+        }
+    }
 
-    // Prepend Recent section
-    if (recentHosts.length > 0) {
+    // Prepend Recent section (only when grouping is on and sort is not "recent")
+    if (showRecentGroup && recentHosts.length > 0) {
+        recentHosts.sort(function(a, b) {
+            return (history[b.host] || 0) - (history[a.host] || 0)
+        })
+
         var recentCollapsed = isGroupCollapsed("Recent")
         items.unshift({
             isHeader: true,
@@ -137,6 +188,7 @@ function buildFilteredModel(opts) {
 
     // Prepend favorites section
     if (favoriteHosts.length > 0) {
+        sortHosts(favoriteHosts, sortOrder, history)
         if (grouping) {
             items.unshift({
                 isHeader: true,
@@ -181,4 +233,4 @@ function buildFilteredModel(opts) {
     return items
 }
 
-if (typeof module !== 'undefined') module.exports = { buildFilteredModel, hostItem }
+if (typeof module !== 'undefined') module.exports = { buildFilteredModel, hostItem, sortHosts }

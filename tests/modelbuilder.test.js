@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildFilteredModel, hostItem } from '../package/contents/code/modelbuilder.js'
+import { buildFilteredModel, hostItem, sortHosts } from '../package/contents/code/modelbuilder.js'
 
 // Helper: create a minimal host object
 function mkHost(alias, opts = {}) {
@@ -441,5 +441,152 @@ describe('buildFilteredModel', () => {
         // No host items should follow
         const hosts = result.filter(i => !i.isHeader)
         expect(hosts).toHaveLength(0)
+    })
+})
+
+// ── Sort order ──────────────────────────────────────────────────────
+
+describe('sortHosts', () => {
+    it('sorts alphabetically by host alias', () => {
+        const hosts = [mkHost('charlie'), mkHost('alpha'), mkHost('bravo')]
+        sortHosts(hosts, 'alphabetical', {})
+        expect(hosts.map(h => h.host)).toEqual(['alpha', 'bravo', 'charlie'])
+    })
+
+    it('sorts alphabetically case-insensitively', () => {
+        const hosts = [mkHost('Zulu'), mkHost('alpha'), mkHost('Bravo')]
+        sortHosts(hosts, 'alphabetical', {})
+        expect(hosts.map(h => h.host)).toEqual(['alpha', 'Bravo', 'Zulu'])
+    })
+
+    it('sorts by most recently connected first', () => {
+        const hosts = [mkHost('old'), mkHost('new'), mkHost('mid')]
+        const history = { old: 100, new: 300, mid: 200 }
+        sortHosts(hosts, 'recent', history)
+        expect(hosts.map(h => h.host)).toEqual(['new', 'mid', 'old'])
+    })
+
+    it('preserves order for never-connected hosts in recent sort', () => {
+        const hosts = [mkHost('a'), mkHost('b'), mkHost('c')]
+        sortHosts(hosts, 'recent', {})
+        expect(hosts.map(h => h.host)).toEqual(['a', 'b', 'c'])
+    })
+
+    it('does not reorder in config sort', () => {
+        const hosts = [mkHost('charlie'), mkHost('alpha'), mkHost('bravo')]
+        sortHosts(hosts, 'config', {})
+        expect(hosts.map(h => h.host)).toEqual(['charlie', 'alpha', 'bravo'])
+    })
+})
+
+describe('buildFilteredModel with sortOrder', () => {
+    const NOW = 1700000000000
+
+    it('sorts hosts alphabetically within groups when grouped', () => {
+        const result = buildFilteredModel(defaultOpts({
+            groupedHosts: [
+                { name: 'G', hosts: [mkHost('charlie'), mkHost('alpha'), mkHost('bravo')] }
+            ],
+            sortOrder: 'alphabetical',
+            now: NOW
+        }))
+        const hosts = result.filter(i => !i.isHeader)
+        expect(hosts.map(h => h.host)).toEqual(['alpha', 'bravo', 'charlie'])
+    })
+
+    it('sorts hosts by recent within groups when grouped', () => {
+        const result = buildFilteredModel(defaultOpts({
+            groupedHosts: [
+                { name: 'G', hosts: [mkHost('a'), mkHost('b'), mkHost('c')] }
+            ],
+            connectionHistory: { a: NOW - 9000000, b: NOW - 1000000, c: NOW - 5000000 },
+            sortOrder: 'recent',
+            now: NOW
+        }))
+        const hosts = result.filter(i => !i.isHeader)
+        expect(hosts.map(h => h.host)).toEqual(['b', 'c', 'a'])
+    })
+
+    it('does not create Recent group when sortOrder is recent', () => {
+        const result = buildFilteredModel(defaultOpts({
+            groupedHosts: [
+                { name: 'G', hosts: [mkHost('a'), mkHost('b')] }
+            ],
+            connectionHistory: { a: NOW - 3600000 },
+            sortOrder: 'recent',
+            now: NOW
+        }))
+        const recentHeader = result.find(i => i.isHeader && i.groupName === 'Recent')
+        expect(recentHeader).toBeUndefined()
+    })
+
+    it('still creates Recent group when sortOrder is config', () => {
+        const result = buildFilteredModel(defaultOpts({
+            groupedHosts: [
+                { name: 'G', hosts: [mkHost('a'), mkHost('b')] }
+            ],
+            connectionHistory: { a: NOW - 3600000 },
+            sortOrder: 'config',
+            now: NOW
+        }))
+        const recentHeader = result.find(i => i.isHeader && i.groupName === 'Recent')
+        expect(recentHeader).toBeDefined()
+    })
+
+    it('no Recent group header when grouping disabled', () => {
+        const result = buildFilteredModel(defaultOpts({
+            groupedHosts: [
+                { name: 'G', hosts: [mkHost('a'), mkHost('b')] }
+            ],
+            connectionHistory: { a: NOW - 3600000 },
+            enableGrouping: false,
+            sortOrder: 'config',
+            now: NOW
+        }))
+        const headers = result.filter(i => i.isHeader)
+        expect(headers).toHaveLength(0)
+    })
+
+    it('sorts flat list alphabetically when ungrouped', () => {
+        const result = buildFilteredModel(defaultOpts({
+            groupedHosts: [
+                { name: 'G1', hosts: [mkHost('charlie'), mkHost('alpha')] },
+                { name: 'G2', hosts: [mkHost('bravo')] }
+            ],
+            enableGrouping: false,
+            sortOrder: 'alphabetical',
+            now: NOW
+        }))
+        const hosts = result.filter(i => !i.isHeader)
+        expect(hosts.map(h => h.host)).toEqual(['alpha', 'bravo', 'charlie'])
+    })
+
+    it('sorts flat list by recent when ungrouped', () => {
+        const result = buildFilteredModel(defaultOpts({
+            groupedHosts: [
+                { name: 'G', hosts: [mkHost('a'), mkHost('b'), mkHost('c')] }
+            ],
+            connectionHistory: { b: NOW - 1000, a: NOW - 5000 },
+            enableGrouping: false,
+            sortOrder: 'recent',
+            now: NOW
+        }))
+        const hosts = result.filter(i => !i.isHeader)
+        expect(hosts.map(h => h.host)).toEqual(['b', 'a', 'c'])
+    })
+
+    it('favorites still appear first when ungrouped with sort', () => {
+        const result = buildFilteredModel(defaultOpts({
+            groupedHosts: [
+                { name: 'G', hosts: [mkHost('a'), mkHost('b'), mkHost('c')] }
+            ],
+            favorites: ['c'],
+            enableGrouping: false,
+            sortOrder: 'alphabetical',
+            now: NOW
+        }))
+        const hosts = result.filter(i => !i.isHeader)
+        expect(hosts[0].host).toBe('c')
+        expect(hosts.slice(1).map(h => h.host)).toEqual(['a', 'b'])
     })
 })

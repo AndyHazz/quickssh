@@ -97,20 +97,47 @@ QQC2.ItemDelegate {
             }
         }
 
+        Item {
+            visible: root.isFavorite(itemData.host) && !hostDelegate.hovered
+            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+            Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+            Layout.rightMargin: Kirigami.Units.smallSpacing
+            Kirigami.Icon {
+                anchors.centerIn: parent
+                source: "window-pin"
+                isMask: true
+                width: Kirigami.Units.iconSizes.small
+                height: Kirigami.Units.iconSizes.small
+                opacity: 0.5
+            }
+        }
+
         QQC2.ToolButton {
             visible: hostDelegate.hovered
             Layout.preferredWidth: Kirigami.Units.iconSizes.medium
             Layout.preferredHeight: Kirigami.Units.iconSizes.medium
-            QQC2.ToolTip.text: i18n("Open in File Manager")
+            Layout.rightMargin: Kirigami.Units.smallSpacing
+            QQC2.ToolTip.text: i18n("More actions")
             QQC2.ToolTip.visible: hovered
             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
-            onClicked: root.openSftp(itemData.host, itemData.user, itemData.hostname)
-            contentItem: Kirigami.Icon {
-                source: "folder"
-                isMask: true
-                implicitWidth: Kirigami.Units.iconSizes.small
-                implicitHeight: Kirigami.Units.iconSizes.small
+            onClicked: {
+                contextMenuLoader.active = true
+                contextMenuLoader.item.popup(this, 0, this.height)
             }
+            contentItem: Kirigami.Icon {
+                source: "overflow-menu"
+                isMask: true
+                implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                implicitHeight: Kirigami.Units.iconSizes.smallMedium
+            }
+        }
+
+        // Reserve space for pin/menu area when neither is visible
+        Item {
+            visible: !root.isFavorite(itemData.host) && !hostDelegate.hovered
+            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+            Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+            Layout.rightMargin: Kirigami.Units.smallSpacing
         }
     }
 
@@ -118,11 +145,13 @@ QQC2.ItemDelegate {
     QQC2.ToolTip.visible: hovered
     QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
 
-    TapHandler {
-        acceptedButtons: Qt.RightButton
-        onTapped: {
-            contextMenuLoader.active = true
-            contextMenuLoader.item.popup()
+    Connections {
+        target: root
+        function onExpandedChanged() {
+            if (!root.expanded && contextMenuLoader.active) {
+                contextMenuLoader.item.close()
+                contextMenuLoader.active = false
+            }
         }
     }
 
@@ -131,24 +160,10 @@ QQC2.ItemDelegate {
         active: false
         sourceComponent: QQC2.Menu {
             QQC2.MenuItem {
-                text: i18n("Copy SSH Command")
-                icon.name: "edit-copy"
-                onTriggered: root.copyToClipboard("ssh " + itemData.host)
-            }
-
-            QQC2.MenuItem {
-                text: i18n("Copy Hostname")
-                icon.name: "edit-copy"
-                onTriggered: root.copyToClipboard(itemData.hostname)
-            }
-
-            QQC2.MenuItem {
                 text: i18n("Open in File Manager")
                 icon.name: "folder"
                 onTriggered: root.openSftp(itemData.host, itemData.user, itemData.hostname)
             }
-
-            QQC2.MenuSeparator {}
 
             QQC2.MenuItem {
                 icon.name: root.isFavorite(itemData.host) ? "bookmark-remove" : "bookmark-new"
@@ -156,14 +171,8 @@ QQC2.ItemDelegate {
                 onTriggered: root.toggleFavorite(itemData.host)
             }
 
-            QQC2.MenuItem {
-                text: i18n("Setup Passwordless Login...")
-                icon.name: "dialog-password"
-                onTriggered: root.setupPasswordlessLogin(itemData.host)
-            }
-
             QQC2.MenuSeparator {
-                visible: itemData.mac !== "" || (itemData.commands && itemData.commands.length > 0)
+                visible: (itemData.mac !== "" && itemData.status === "offline") || (itemData.commands && itemData.commands.length > 0)
             }
 
             QQC2.MenuItem {
@@ -173,21 +182,21 @@ QQC2.ItemDelegate {
                 onTriggered: root.wakeHost(itemData.mac)
             }
 
-            QQC2.Menu {
-                id: commandsSubMenu
-                title: i18n("Run Command")
-                icon.name: "run-build"
-                visible: itemData.commands && itemData.commands.length > 0
-
-                Instantiator {
-                    model: itemData.commands || []
-                    delegate: QQC2.MenuItem {
-                        text: modelData
-                        onTriggered: root.runHostCommand(itemData.host, modelData)
-                    }
-                    onObjectAdded: (index, object) => commandsSubMenu.insertItem(index, object)
-                    onObjectRemoved: (index, object) => commandsSubMenu.removeItem(object)
+            Repeater {
+                model: itemData.commands || []
+                QQC2.MenuItem {
+                    text: modelData
+                    icon.name: "run-build"
+                    onTriggered: root.runHostCommand(itemData.host, modelData)
                 }
+            }
+
+            QQC2.MenuSeparator {}
+
+            QQC2.MenuItem {
+                text: i18n("Setup Passwordless Login...")
+                icon.name: "dialog-password"
+                onTriggered: root.setupPasswordlessLogin(itemData.host)
             }
         }
     }
