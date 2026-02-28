@@ -109,7 +109,13 @@ function parseConfig(text) {
         // Command directive (repeatable — accumulates into array)
         var cmdMatch = line.match(/^#\s*Command\s+(.+)/i)
         if (cmdMatch) {
-            pendingCommands.push(cmdMatch[1].trim())
+            var cmdText = cmdMatch[1].trim()
+            var namedMatch = cmdText.match(/^\[([^\]]+)\]\s+(.+)/)
+            if (namedMatch) {
+                pendingCommands.push({ name: namedMatch[1].trim(), cmd: namedMatch[2].trim() })
+            } else {
+                pendingCommands.push({ name: "", cmd: cmdText })
+            }
             continue
         }
 

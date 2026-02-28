@@ -344,7 +344,7 @@ describe('parseConfig', () => {
     it('parses a single Command directive', () => {
         const input = '# Command restart-nginx\nHost server\n  HostName 10.0.0.1'
         const result = parseConfig(input)
-        expect(result.groups[0].hosts[0].commands).toEqual(['restart-nginx'])
+        expect(result.groups[0].hosts[0].commands).toEqual([{ name: '', cmd: 'restart-nginx' }])
     })
 
     it('accumulates multiple Command directives', () => {
@@ -356,7 +356,7 @@ describe('parseConfig', () => {
             '  HostName 10.0.0.1'
         ].join('\n')
         const result = parseConfig(input)
-        expect(result.groups[0].hosts[0].commands).toEqual(['restart-nginx', 'check-logs', 'deploy'])
+        expect(result.groups[0].hosts[0].commands).toEqual([{ name: '', cmd: 'restart-nginx' }, { name: '', cmd: 'check-logs' }, { name: '', cmd: 'deploy' }])
     })
 
     it('resets Commands after the Host block (does not leak)', () => {
@@ -368,8 +368,48 @@ describe('parseConfig', () => {
             '  HostName 10.0.0.2'
         ].join('\n')
         const result = parseConfig(input)
-        expect(result.groups[0].hosts[0].commands).toEqual(['special-cmd'])
+        expect(result.groups[0].hosts[0].commands).toEqual([{ name: '', cmd: 'special-cmd' }])
         expect(result.groups[0].hosts[1].commands).toEqual([])
+    })
+
+    it('parses a named command with [brackets]', () => {
+        const input = '# Command [Deploy App] deploy.sh --prod\nHost server\n  HostName 10.0.0.1'
+        const result = parseConfig(input)
+        expect(result.groups[0].hosts[0].commands).toEqual([
+            { name: 'Deploy App', cmd: 'deploy.sh --prod' }
+        ])
+    })
+
+    it('parses an unnamed command as {name: "", cmd: "..."}', () => {
+        const input = '# Command restart-nginx\nHost server\n  HostName 10.0.0.1'
+        const result = parseConfig(input)
+        expect(result.groups[0].hosts[0].commands).toEqual([
+            { name: '', cmd: 'restart-nginx' }
+        ])
+    })
+
+    it('parses mixed named and unnamed commands', () => {
+        const input = [
+            '# Command [Deploy] deploy.sh --prod',
+            '# Command check-logs',
+            '# Command [Restart] systemctl restart nginx',
+            'Host server',
+            '  HostName 10.0.0.1'
+        ].join('\n')
+        const result = parseConfig(input)
+        expect(result.groups[0].hosts[0].commands).toEqual([
+            { name: 'Deploy', cmd: 'deploy.sh --prod' },
+            { name: '', cmd: 'check-logs' },
+            { name: 'Restart', cmd: 'systemctl restart nginx' }
+        ])
+    })
+
+    it('handles bracket name with special characters in command', () => {
+        const input = '# Command [View Logs] tail -f /var/log/*.log | grep error\nHost server\n  HostName 10.0.0.1'
+        const result = parseConfig(input)
+        expect(result.groups[0].hosts[0].commands).toEqual([
+            { name: 'View Logs', cmd: 'tail -f /var/log/*.log | grep error' }
+        ])
     })
 
     // ── Pending state reset ──────────────────────────────────────────
@@ -389,7 +429,7 @@ describe('parseConfig', () => {
         const second = result.groups[0].hosts[1]
         expect(first.icon).toBe('custom-icon')
         expect(first.mac).toBe('11:22:33:44:55:66')
-        expect(first.commands).toEqual(['do-thing'])
+        expect(first.commands).toEqual([{ name: '', cmd: 'do-thing' }])
         expect(second.icon).toBe('')
         expect(second.mac).toBe('')
         expect(second.commands).toEqual([])
@@ -469,7 +509,7 @@ describe('parseConfig', () => {
         expect(mainServer.user).toBe('admin')
         expect(mainServer.icon).toBe('server-database')
         expect(mainServer.mac).toBe('aa:bb:cc:dd:ee:ff')
-        expect(mainServer.commands).toEqual(['restart-nginx', 'check-logs'])
+        expect(mainServer.commands).toEqual([{ name: '', cmd: 'restart-nginx' }, { name: '', cmd: 'check-logs' }])
 
         const backupServer = result.groups[0].hosts[1]
         expect(backupServer.host).toBe('backup-server')
