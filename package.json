@@ -1,0 +1,14 @@
+{
+  "name": "quickssh",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Quick SSH — KDE Plasma widget for managing SSH connections",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

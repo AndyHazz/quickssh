@@ -7,6 +7,9 @@ import org.kde.kirigami as Kirigami
 import org.kde.notification
 
 import "../code/sshconfig.js" as SSHConfig
+import "../code/discovery.js" as Discovery
+import "../code/timeformat.js" as TimeFormat
+import "../code/statemanager.js" as StateManager
 
 PlasmoidItem {
     id: root
@@ -89,14 +92,8 @@ PlasmoidItem {
     }
 
     function recordConnection(hostAlias) {
-        var history = {}
-        // Copy existing history
-        for (var key in connectionHistory) {
-            history[key] = connectionHistory[key]
-        }
-        history[hostAlias] = Date.now()
-        connectionHistory = history
-        plasmoid.configuration.connectionHistory = JSON.stringify(history)
+        connectionHistory = StateManager.recordConnection(connectionHistory, hostAlias)
+        plasmoid.configuration.connectionHistory = JSON.stringify(connectionHistory)
     }
 
     function formatTimeAgo(timestamp) {
@@ -191,39 +188,11 @@ PlasmoidItem {
     }
 
     function parseDiscoveredHosts(output) {
-        var hosts = []
-        var seen = {}
-        var configuredHostnames = {}
+        var configuredHostnames = []
         for (var i = 0; i < hostList.length; i++) {
-            configuredHostnames[hostList[i].hostname.toLowerCase()] = true
+            configuredHostnames.push(hostList[i].hostname)
         }
-
-        var lines = output.split("\n")
-        for (var j = 0; j < lines.length; j++) {
-            var line = lines[j]
-            if (!line.startsWith("=")) continue
-            var fields = line.split(";")
-            if (fields.length < 9) continue
-            if (fields[2] !== "IPv4") continue
-
-            var name = fields[3]
-            var mdnsHost = fields[6]
-            var address = fields[7]
-
-            if (configuredHostnames[address.toLowerCase()]) continue
-            if (configuredHostnames[mdnsHost.toLowerCase()]) continue
-            if (seen[address]) continue
-            seen[address] = true
-
-            hosts.push({
-                host: name,
-                hostname: address,
-                user: "",
-                icon: "network-wired",
-                status: "online"
-            })
-        }
-        root.discoveredHosts = hosts
+        root.discoveredHosts = Discovery.parseDiscoveredHosts(output, configuredHostnames)
     }
 
     property var pingQueue: []
@@ -333,19 +302,12 @@ PlasmoidItem {
     }
 
     function toggleGroup(groupName) {
-        var groups = collapsedGroups.slice()
-        var idx = groups.indexOf(groupName)
-        if (idx >= 0) {
-            groups.splice(idx, 1)
-        } else {
-            groups.push(groupName)
-        }
-        collapsedGroups = groups
-        plasmoid.configuration.collapsedGroups = JSON.stringify(groups)
+        collapsedGroups = StateManager.toggleGroup(collapsedGroups, groupName)
+        plasmoid.configuration.collapsedGroups = JSON.stringify(collapsedGroups)
     }
 
     function isGroupCollapsed(groupName) {
-        return collapsedGroups.indexOf(groupName) >= 0
+        return StateManager.isGroupCollapsed(collapsedGroups, groupName)
     }
 
     function openSftp(host, user, hostname) {
@@ -357,19 +319,12 @@ PlasmoidItem {
     }
 
     function isFavorite(host) {
-        return favorites.indexOf(host) >= 0
+        return StateManager.isFavorite(favorites, host)
     }
 
     function toggleFavorite(host) {
-        var favs = favorites.slice()
-        var idx = favs.indexOf(host)
-        if (idx >= 0) {
-            favs.splice(idx, 1)
-        } else {
-            favs.push(host)
-        }
-        favorites = favs
-        plasmoid.configuration.favorites = JSON.stringify(favs)
+        favorites = StateManager.toggleFavorite(favorites, host)
+        plasmoid.configuration.favorites = JSON.stringify(favorites)
     }
 
     function wakeHost(mac) {

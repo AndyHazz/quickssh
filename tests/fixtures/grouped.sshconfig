@@ -1,0 +1,19 @@
+# GroupStart Production
+Host prod-web
+    HostName 10.0.0.1
+    User deploy
+
+Host prod-db
+    HostName 10.0.0.2
+    User deploy
+# GroupEnd
+
+# GroupStart Staging
+Host staging-web
+    HostName 10.0.1.1
+    User deploy
+
+Host staging-db
+    HostName 10.0.1.2
+    User deploy
+# GroupEnd

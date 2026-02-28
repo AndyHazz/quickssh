@@ -151,3 +151,6 @@ function parseConfig(text) {
 
     return { groups: groups }
 }
+
+// Allow Node.js test runners to import this module
+if (typeof module !== 'undefined') module.exports = { parseConfig }

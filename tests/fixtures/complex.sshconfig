@@ -1,0 +1,24 @@
+# GroupStart Servers
+# Icon server-database
+# MAC aa:bb:cc:dd:ee:ff
+# Command restart-nginx
+# Command check-logs
+Host main-server
+    HostName 192.168.1.100
+    User admin
+
+# Icon network-server
+Host backup-server
+    HostName 192.168.1.101
+    User backup
+# GroupEnd
+
+# GroupStart Development
+Host dev-box
+    HostName 10.0.0.50
+    User developer
+# GroupEnd
+
+Host standalone
+    HostName 172.16.0.1
+    User root
