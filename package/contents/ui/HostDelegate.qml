@@ -191,9 +191,9 @@ QQC2.ItemDelegate {
             Repeater {
                 model: itemData.commands || []
                 QQC2.MenuItem {
-                    text: modelData
+                    text: modelData.name || modelData.cmd
                     icon.name: "run-build"
-                    onTriggered: root.runHostCommand(itemData.host, modelData)
+                    onTriggered: root.runHostCommand(itemData.host, modelData.cmd)
                 }
             }
 
