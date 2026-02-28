@@ -615,7 +615,7 @@ KCMUtils.SimpleKCM {
             }
 
             QQC2.Label {
-                text: i18n("Commands appear in the right-click menu for this host")
+                text: i18n("Commands appear in the right-click menu. Name sets the display label (optional).")
                 font: Kirigami.Theme.smallFont
                 color: Kirigami.Theme.disabledTextColor
                 Layout.fillWidth: true

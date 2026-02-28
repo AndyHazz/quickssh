@@ -401,6 +401,7 @@ PlasmoidItem {
         } else {
             cmd = plasmoid.configuration.terminalCommand + " ssh -t " + hostAlias + " '" + escaped + "'"
         }
+        launcher.disconnectSource(cmd)
         launcher.connectSource(cmd)
         root.expanded = false
     }

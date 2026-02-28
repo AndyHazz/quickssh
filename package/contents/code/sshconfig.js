@@ -110,6 +110,7 @@ function parseConfig(text) {
         var cmdMatch = line.match(/^#\s*Command\s+(.+)/i)
         if (cmdMatch) {
             var cmdText = cmdMatch[1].trim()
+            // Requires text after closing bracket; bare '[Name]' falls through to unnamed
             var namedMatch = cmdText.match(/^\[([^\]]+)\]\s+(.+)/)
             if (namedMatch) {
                 pendingCommands.push({ name: namedMatch[1].trim(), cmd: namedMatch[2].trim() })
