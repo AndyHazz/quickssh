@@ -149,8 +149,10 @@ KCMUtils.SimpleKCM {
         // Commands
         var cmds = []
         for (var c = 0; c < commandsModel.count; c++) {
-            var val = commandsModel.get(c).value
-            if (val !== "") cmds.push(val)
+            var item = commandsModel.get(c)
+            if (item.cmd.trim() !== "") {
+                cmds.push({ name: item.name.trim(), cmd: item.cmd.trim() })
+            }
         }
         h.commands = cmds
 
@@ -335,7 +337,12 @@ KCMUtils.SimpleKCM {
         optionsModel.clear()
         if (currentHost) {
             for (var c = 0; c < currentHost.commands.length; c++) {
-                commandsModel.append({ value: currentHost.commands[c] })
+                var cmd = currentHost.commands[c]
+                if (typeof cmd === "object") {
+                    commandsModel.append({ name: cmd.name || "", cmd: cmd.cmd })
+                } else {
+                    commandsModel.append({ name: "", cmd: cmd })
+                }
             }
             for (var o = 0; o < currentHost.options.length; o++) {
                 optionsModel.append({
@@ -599,7 +606,7 @@ KCMUtils.SimpleKCM {
                 QQC2.ToolButton {
                     icon.name: "list-add"
                     onClicked: {
-                        commandsModel.append({ value: "" })
+                        commandsModel.append({ name: "", cmd: "" })
                         markDirty()
                     }
                     QQC2.ToolTip.text: i18n("Add command")
@@ -626,10 +633,20 @@ KCMUtils.SimpleKCM {
                 delegate: RowLayout {
                     Layout.fillWidth: true
                     QQC2.TextField {
-                        Layout.fillWidth: true
-                        text: model.value
+                        Layout.preferredWidth: Math.round(parent.width * 0.3)
+                        text: model.name
+                        placeholderText: i18n("Name (optional)")
                         onTextEdited: {
-                            commandsModel.set(index, { value: text })
+                            commandsModel.set(index, { name: text, cmd: model.cmd })
+                            markDirty()
+                        }
+                    }
+                    QQC2.TextField {
+                        Layout.fillWidth: true
+                        text: model.cmd
+                        placeholderText: i18n("Command")
+                        onTextEdited: {
+                            commandsModel.set(index, { name: model.name, cmd: text })
                             markDirty()
                         }
                     }
