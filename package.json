@@ -1,6 +1,6 @@
 {
   "name": "squissh",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "private": true,
   "description": "SquiSSH — KDE Plasma widget for managing SSH connections",
   "scripts": {
