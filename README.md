@@ -34,13 +34,13 @@
 - mDNS/Avahi network host discovery
 - Status change notifications
 - Auto-detects your terminal emulator's icon for host entries
-- **Config persistence** across widget updates
 
 ## Installation
 
 ### From KDE Store
 
-Search for "SquiSSH" in **Get New Widgets** on your Plasma panel.
+<p>Search for "SquiSSH" in **Get New Widgets** on your Plasma panel.</p>
+<p>Also to be found on the KDE store: https://store.kde.org/p/2349907/</p>
 
 ### From Source
 
