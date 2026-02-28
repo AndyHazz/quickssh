@@ -10,6 +10,7 @@ import "../code/sshconfig.js" as SSHConfig
 import "../code/discovery.js" as Discovery
 import "../code/timeformat.js" as TimeFormat
 import "../code/statemanager.js" as StateManager
+import "../code/shellutil.js" as ShellUtil
 
 PlasmoidItem {
     id: root
@@ -231,7 +232,7 @@ PlasmoidItem {
 
     function loadConfig() {
         var path = plasmoid.configuration.sshConfigPath || "~/.ssh/config"
-        configReader.connectSource("cat " + path.replace("~", "$HOME"))
+        configReader.connectSource("cat \"" + path.replace("~", "$HOME") + "\"")
     }
 
     function discoverNetworkHosts() {
@@ -268,7 +269,9 @@ PlasmoidItem {
         var queue = []
         for (var i = 0; i < hostList.length; i++) {
             hostList[i].status = "checking"
-            queue.push("ping -c 1 -W " + timeout + " " + hostList[i].hostname)
+            if (ShellUtil.isSafeHostname(hostList[i].hostname)) {
+                queue.push("ping -c 1 -W " + timeout + " " + hostList[i].hostname)
+            }
         }
         root.pingQueue = queue
         hostListChanged()
@@ -334,7 +337,7 @@ PlasmoidItem {
         var host = findHost(hostAlias)
         var cmd = (host && isLocalHost(host.hostname))
             ? plasmoid.configuration.terminalCommand.replace(/\s+(-e|--|--command)\s*$/, "")
-            : plasmoid.configuration.terminalCommand + " ssh " + hostAlias
+            : plasmoid.configuration.terminalCommand + " ssh " + ShellUtil.shellQuote(hostAlias)
         launcher.disconnectSource(cmd)
         launcher.connectSource(cmd)
         recordConnection(hostAlias)
@@ -353,7 +356,7 @@ PlasmoidItem {
     }
 
     function setupPasswordlessLogin(hostAlias) {
-        var cmd = plasmoid.configuration.terminalCommand + " ssh-copy-id " + hostAlias
+        var cmd = plasmoid.configuration.terminalCommand + " ssh-copy-id " + ShellUtil.shellQuote(hostAlias)
         launcher.connectSource(cmd)
         root.expanded = false
     }
@@ -394,12 +397,12 @@ PlasmoidItem {
 
     function runHostCommand(hostAlias, command) {
         var host = findHost(hostAlias)
-        var escaped = command.replace(/'/g, "'\\''")
+        var quoted = ShellUtil.shellQuote(command)
         var cmd
         if (host && isLocalHost(host.hostname)) {
-            cmd = plasmoid.configuration.terminalCommand + " ${SHELL:-/bin/sh} -lic '" + escaped + "'"
+            cmd = plasmoid.configuration.terminalCommand + " ${SHELL:-/bin/sh} -lic " + quoted
         } else {
-            cmd = plasmoid.configuration.terminalCommand + " ssh -t " + hostAlias + " '" + escaped + "'"
+            cmd = plasmoid.configuration.terminalCommand + " ssh -t " + ShellUtil.shellQuote(hostAlias) + " " + quoted
         }
         launcher.disconnectSource(cmd)
         launcher.connectSource(cmd)
@@ -407,7 +410,7 @@ PlasmoidItem {
     }
 
     function connectFromSearch(text) {
-        var cmd = plasmoid.configuration.terminalCommand + " ssh " + text
+        var cmd = plasmoid.configuration.terminalCommand + " ssh " + ShellUtil.shellQuote(text)
         launcher.connectSource(cmd)
         root.expanded = false
     }
