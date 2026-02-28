@@ -53,12 +53,15 @@ QQC2.ItemDelegate {
                 width: Math.min(parent.width, parent.height)
                 height: width
                 source: {
-                    var icon = itemData.icon || "network-server"
-                    if (icon.startsWith("~/")) {
+                    var icon = itemData.icon || ""
+                    if (!icon) return root.terminalIcon
+                    if (icon === "quickssh") return Qt.resolvedUrl("../icons/quickssh.svg")
+                    if (icon === "terminal") return "utilities-terminal"
+                    if (icon.startsWith("~/"))
                         icon = StandardPaths.writableLocation(StandardPaths.HomeLocation) + icon.substring(1)
-                    }
                     return icon
                 }
+                isMask: itemData.icon === "quickssh"
             }
         }
 
@@ -141,7 +144,9 @@ QQC2.ItemDelegate {
         }
     }
 
-    QQC2.ToolTip.text: "ssh " + (itemData.user ? itemData.user + "@" : "") + itemData.hostname
+    QQC2.ToolTip.text: root.isLocalHost(itemData.hostname)
+        ? i18n("Open terminal")
+        : "ssh " + (itemData.user ? itemData.user + "@" : "") + itemData.hostname
     QQC2.ToolTip.visible: hovered
     QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
 
@@ -162,6 +167,7 @@ QQC2.ItemDelegate {
             QQC2.MenuItem {
                 text: i18n("Open in File Manager")
                 icon.name: "folder"
+                visible: !root.isLocalHost(itemData.hostname)
                 onTriggered: root.openSftp(itemData.host, itemData.user, itemData.hostname)
             }
 
@@ -191,11 +197,14 @@ QQC2.ItemDelegate {
                 }
             }
 
-            QQC2.MenuSeparator {}
+            QQC2.MenuSeparator {
+                visible: !root.isLocalHost(itemData.hostname)
+            }
 
             QQC2.MenuItem {
                 text: i18n("Setup Passwordless Login...")
                 icon.name: "dialog-password"
+                visible: !root.isLocalHost(itemData.hostname)
                 onTriggered: root.setupPasswordlessLogin(itemData.host)
             }
         }

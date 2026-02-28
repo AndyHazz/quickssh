@@ -21,7 +21,7 @@ PlasmoidItem {
     switchWidth: Kirigami.Units.gridUnit * 20
     switchHeight: Kirigami.Units.gridUnit * 14
 
-    Plasmoid.icon: "utilities-terminal"
+    Plasmoid.icon: Qt.resolvedUrl("../icons/quickssh.svg")
     Plasmoid.status: PlasmaCore.Types.ActiveStatus
     Plasmoid.backgroundHints: PlasmaCore.Types.DefaultBackground | PlasmaCore.Types.ConfigurableBackground
 
@@ -65,6 +65,17 @@ PlasmoidItem {
     property var discoveredHosts: []
     property double lastRefreshTime: 0
     readonly property int refreshCooldown: 30000 // 30 seconds
+    readonly property var _localHostnames: ["localhost", "127.0.0.1", "::1"]
+    property string terminalIcon: "utilities-terminal"
+
+    function isLocalHost(hostname) {
+        return _localHostnames.indexOf(hostname.toLowerCase()) >= 0
+    }
+
+    property bool _restoring: false
+    readonly property string _prefsFile: "$HOME/.config/quickssh-prefs.json"
+    property var _cfgSnapshot: JSON.stringify(plasmoid.configuration)
+    on_CfgSnapshotChanged: { if (!_restoring) prefsSaveTimer.restart() }
 
     function refreshIfStale() {
         var now = Date.now()
@@ -107,6 +118,47 @@ PlasmoidItem {
         if (hours < 24) return i18np("%1 hour ago", "%1 hours ago", hours)
         var days = Math.floor(hours / 24)
         return i18np("%1 day ago", "%1 days ago", days)
+    }
+
+    Plasma5Support.DataSource {
+        id: prefsIO
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            disconnectSource(sourceName)
+            if (sourceName.indexOf("cat ") === 0 && data["exit code"] === 0 && data["stdout"]) {
+                try {
+                    var config = JSON.parse(data["stdout"])
+                    _restoring = true
+                    for (var key in config)
+                        if (config.hasOwnProperty(key))
+                            plasmoid.configuration[key] = config[key]
+                } catch(e) {} finally { _restoring = false }
+            }
+        }
+    }
+
+    Timer {
+        id: prefsSaveTimer
+        interval: 1000
+        onTriggered: root.savePrefs()
+    }
+
+    function savePrefs() {
+        if (_restoring) return
+        var cfg = plasmoid.configuration
+        var keys = ["terminalCommand", "sshConfigPath", "showStatus", "pingTimeout",
+                    "showBadge", "hideUnreachable", "enableGrouping", "sortOrder",
+                    "enableSearch", "showIcons", "notifyOnStatusChange", "pollInterval",
+                    "discoverHosts", "favorites", "collapsedGroups", "connectionHistory"]
+        var config = {}
+        for (var i = 0; i < keys.length; i++) config[keys[i]] = cfg[keys[i]]
+        var encoded = Qt.btoa(JSON.stringify(config))
+        prefsIO.connectSource("printf '%s' " + encoded + " | base64 -d > " + _prefsFile)
+    }
+
+    function loadPrefs() {
+        prefsIO.connectSource("cat " + _prefsFile + " 2>/dev/null")
     }
 
     Plasma5Support.DataSource {
@@ -279,11 +331,20 @@ PlasmoidItem {
     }
 
     function connectToHost(hostAlias) {
-        var cmd = plasmoid.configuration.terminalCommand + " ssh " + hostAlias
+        var host = findHost(hostAlias)
+        var cmd = (host && isLocalHost(host.hostname))
+            ? plasmoid.configuration.terminalCommand
+            : plasmoid.configuration.terminalCommand + " ssh " + hostAlias
         launcher.disconnectSource(cmd)
         launcher.connectSource(cmd)
         recordConnection(hostAlias)
         root.expanded = false
+    }
+
+    function findHost(hostAlias) {
+        for (var i = 0; i < hostList.length; i++)
+            if (hostList[i].host === hostAlias) return hostList[i]
+        return null
     }
 
     function editConfig(path) {
@@ -332,7 +393,10 @@ PlasmoidItem {
     }
 
     function runHostCommand(hostAlias, command) {
-        var cmd = plasmoid.configuration.terminalCommand + " ssh -t " + hostAlias + " " + command
+        var host = findHost(hostAlias)
+        var cmd = (host && isLocalHost(host.hostname))
+            ? plasmoid.configuration.terminalCommand + " " + command
+            : plasmoid.configuration.terminalCommand + " ssh -t " + hostAlias + " " + command
         launcher.connectSource(cmd)
         root.expanded = false
     }
@@ -362,7 +426,28 @@ PlasmoidItem {
         }
     ]
 
-    Component.onCompleted: loadConfig()
+    Plasma5Support.DataSource {
+        id: termIconResolver
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            disconnectSource(sourceName)
+            if (data["exit code"] === 0 && data["stdout"].trim())
+                root.terminalIcon = data["stdout"].trim()
+        }
+    }
+
+    function resolveTerminalIcon() {
+        var bin = (plasmoid.configuration.terminalCommand || "").split(/\s/)[0].split("/").pop()
+        if (bin) termIconResolver.connectSource(
+            "grep -rl 'Exec.*" + bin + "' /usr/share/applications/ ~/.local/share/applications/ 2>/dev/null | head -1 | xargs grep '^Icon=' 2>/dev/null | head -1 | cut -d= -f2")
+    }
+
+    Component.onCompleted: {
+        loadPrefs()
+        loadConfig()
+        resolveTerminalIcon()
+    }
 
     // Write SSH config to disk when Apply is clicked in the Hosts config page
     Plasma5Support.DataSource {

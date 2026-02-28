@@ -9,18 +9,33 @@ MouseArea {
 
     readonly property bool inTray: (plasmoid.containmentDisplayHints & PlasmaCore.Types.ContainmentDrawsPlasmoidHeading)
 
-    Layout.minimumWidth: inTray ? Kirigami.Units.iconSizes.medium : Kirigami.Units.gridUnit
-    Layout.minimumHeight: inTray ? Kirigami.Units.iconSizes.medium : Kirigami.Units.gridUnit
+    Layout.minimumWidth: Kirigami.Units.iconSizes.small
+    Layout.minimumHeight: Kirigami.Units.iconSizes.small
+    Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+    Layout.preferredHeight: Kirigami.Units.iconSizes.medium
 
     hoverEnabled: true
     acceptedButtons: Qt.LeftButton
 
     onClicked: root.expanded = !root.expanded
 
+    Rectangle {
+        id: hoverBackground
+        anchors.fill: parent
+        anchors.margins: -Kirigami.Units.smallSpacing / 2
+        radius: Kirigami.Units.smallSpacing
+        color: Kirigami.Theme.highlightColor
+        opacity: compactRoot.containsMouse ? 0.2 : 0
+        Behavior on opacity {
+            NumberAnimation { duration: Kirigami.Units.shortDuration }
+        }
+    }
+
     Kirigami.Icon {
         id: trayIcon
         anchors.fill: parent
-        source: Plasmoid.icon
+        source: Qt.resolvedUrl("../icons/quickssh.svg")
+        isMask: true
         active: compactRoot.containsMouse
     }
 

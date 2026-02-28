@@ -438,7 +438,8 @@ KCMUtils.SimpleKCM {
 
                     delegate: QQC2.ItemDelegate {
                         width: hostTreeView.width
-                        text: modelData.isHeader ? modelData.label : "    " + modelData.label
+                        text: modelData.label
+                        leftPadding: modelData.isHeader ? undefined : Kirigami.Units.gridUnit * 1.5
                         font.bold: modelData.isHeader
                         font.italic: modelData.isHeader
                         highlighted: modelData.isHeader
@@ -525,10 +526,10 @@ KCMUtils.SimpleKCM {
                 onTextEdited: markDirty()
             }
 
-            // ── QuickSSH Options ─────────────────────────────────────
+            // ── Display & Wake-on-LAN ──────────────────────────────────
             Kirigami.Separator {
                 Kirigami.FormData.isSection: true
-                Kirigami.FormData.label: i18n("QuickSSH Options")
+                Kirigami.FormData.label: i18n("Display & Wake-on-LAN")
             }
 
             QQC2.ComboBox {
@@ -604,6 +605,14 @@ KCMUtils.SimpleKCM {
                     QQC2.ToolTip.text: i18n("Add command")
                     QQC2.ToolTip.visible: hovered
                 }
+            }
+
+            QQC2.Label {
+                text: i18n("Commands appear in the right-click menu for this host")
+                font: Kirigami.Theme.smallFont
+                color: Kirigami.Theme.disabledTextColor
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
             }
 
             QQC2.Label {

@@ -92,44 +92,6 @@ KCMUtils.SimpleKCM {
 
         Kirigami.Separator {
             Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Status")
-        }
-
-        QQC2.CheckBox {
-            id: showStatusCheck
-            Kirigami.FormData.label: i18n("Show connection status:")
-        }
-
-        QQC2.SpinBox {
-            id: pingTimeoutSpin
-            Kirigami.FormData.label: i18n("Ping timeout (seconds):")
-            from: 1
-            to: 10
-            enabled: showStatusCheck.checked
-        }
-
-        QQC2.CheckBox {
-            id: hideUnreachableCheck
-            Kirigami.FormData.label: i18n("Hide unreachable hosts:")
-            enabled: showStatusCheck.checked
-        }
-
-        QQC2.CheckBox {
-            id: notifyOnStatusChangeCheck
-            Kirigami.FormData.label: i18n("Notify on status change:")
-            enabled: showStatusCheck.checked
-        }
-
-        QQC2.SpinBox {
-            id: pollIntervalSpin
-            Kirigami.FormData.label: i18n("Poll interval (minutes):")
-            from: 1
-            to: 60
-            enabled: notifyOnStatusChangeCheck.checked && showStatusCheck.checked
-        }
-
-        Kirigami.Separator {
-            Kirigami.FormData.isSection: true
             Kirigami.FormData.label: i18n("Appearance")
         }
 
@@ -162,6 +124,60 @@ KCMUtils.SimpleKCM {
         QQC2.CheckBox {
             id: showBadgeCheck
             Kirigami.FormData.label: i18n("Show host count badge on icon:")
+        }
+
+        QQC2.Label {
+            text: i18n("Shows the number of configured hosts on the panel icon")
+            font: Kirigami.Theme.smallFont
+            color: Kirigami.Theme.disabledTextColor
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+        }
+
+        Kirigami.Separator {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18n("Status Monitoring")
+        }
+
+        QQC2.CheckBox {
+            id: showStatusCheck
+            Kirigami.FormData.label: i18n("Show connection status:")
+        }
+
+        QQC2.SpinBox {
+            id: pingTimeoutSpin
+            Kirigami.FormData.label: i18n("Ping timeout (seconds):")
+            from: 1
+            to: 10
+            enabled: showStatusCheck.checked
+        }
+
+        QQC2.SpinBox {
+            id: pollIntervalSpin
+            Kirigami.FormData.label: i18n("Poll interval (minutes):")
+            from: 1
+            to: 60
+            enabled: showStatusCheck.checked
+        }
+
+        QQC2.Label {
+            text: i18n("How often to re-check host reachability")
+            font: Kirigami.Theme.smallFont
+            color: Kirigami.Theme.disabledTextColor
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+        }
+
+        QQC2.CheckBox {
+            id: hideUnreachableCheck
+            Kirigami.FormData.label: i18n("Hide unreachable hosts:")
+            enabled: showStatusCheck.checked
+        }
+
+        QQC2.CheckBox {
+            id: notifyOnStatusChangeCheck
+            Kirigami.FormData.label: i18n("Notify on status change:")
+            enabled: showStatusCheck.checked
         }
     }
 }

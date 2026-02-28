@@ -10,10 +10,11 @@ KCMUtils.SimpleKCM {
     ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
+        anchors.margins: Kirigami.Units.largeSpacing
         spacing: Kirigami.Units.largeSpacing
 
         QQC2.Label {
-            text: i18n("Quick SSH reads your standard SSH config file and displays hosts in the widget. You can add special comments to organize hosts into groups and assign custom icons.")
+            text: i18n("Quick SSH reads your standard SSH config file and displays hosts in the widget. You can manage hosts directly from the SSH Hosts tab, or edit your config file manually using the special comment directives below.")
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }
@@ -22,9 +23,17 @@ KCMUtils.SimpleKCM {
 
         // Directives reference
         QQC2.Label {
-            text: i18n("Directives")
+            text: i18n("Config File Directives")
             font.bold: true
             font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.1
+        }
+
+        QQC2.Label {
+            text: i18n("These comments can be added to your SSH config file to organize hosts. They are ignored by SSH and only used by Quick SSH.")
+            font: Kirigami.Theme.smallFont
+            color: Kirigami.Theme.disabledTextColor
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
         }
 
         GridLayout {
@@ -109,20 +118,44 @@ KCMUtils.SimpleKCM {
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 wrapMode: Text.WordWrap
                 textFormat: Text.PlainText
-                text: "# GroupStart Production Servers\n\n# Icon network-server-database\n# Command tail -f /var/log/syslog\n# Command systemctl status nginx\nHost prod-db\n    HostName 10.0.1.10\n    User admin\n\nHost prod-web\n    HostName 10.0.1.20\n    User deploy\n\n# GroupEnd\n\n# GroupStart Home Lab\n\n# Icon ~/.local/share/icons/quickssh/pihole.png\n# MAC aa:bb:cc:dd:ee:ff\nHost pihole\n    HostName 192.168.1.50\n    User pi\n\nHost nas\n    HostName 192.168.1.100\n    User admin\n\n# GroupEnd\n\n# Hosts outside groups appear under \"Ungrouped\"\nHost personal-vps\n    HostName example.com\n    User me"
+                text: "# Local terminal with custom commands\n# Icon quickssh\n# Command htop\n# Command btop\n# Command journalctl -f\nHost local\n    HostName localhost\n\n# GroupStart Production Servers\n\n# Icon network-server-database\n# Command tail -f /var/log/syslog\n# Command systemctl status nginx\nHost prod-db\n    HostName 10.0.1.10\n    User admin\n\nHost prod-web\n    HostName 10.0.1.20\n    User deploy\n\n# GroupEnd\n\n# GroupStart Home Lab\n\n# Icon ~/.local/share/icons/quickssh/pihole.png\n# MAC aa:bb:cc:dd:ee:ff\nHost pihole\n    HostName 192.168.1.50\n    User pi\n\nHost nas\n    HostName 192.168.1.100\n    User admin\n\n# GroupEnd\n\n# Hosts outside groups appear under \"Ungrouped\"\nHost personal-vps\n    HostName example.com\n    User me"
             }
         }
 
         Kirigami.Separator {}
 
         QQC2.Label {
-            text: i18n("Notes")
+            text: i18n("Icons")
             font.bold: true
             font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.1
         }
 
         QQC2.Label {
-            text: i18n("• These comments are ignored by SSH — they won't affect your connections.\n• Wildcard hosts (e.g. Host *) are automatically skipped.\n• The # Icon, # MAC, and # Command directives apply to the next Host entry only.\n• Icon names follow the freedesktop icon naming spec. Browse available icons with the Cuttlefish app (kde-dev-utils).\n• # Command can be repeated multiple times to add several commands to one host.\n• Wake-on-LAN requires the 'wakeonlan' package to be installed.")
+            text: i18n("• Icon names follow the freedesktop icon naming spec. Browse available icons with the Cuttlefish app (kde-dev-utils).\n• Use 'quickssh' for the built-in Quick SSH icon, or 'terminal' for the generic terminal icon.\n• Hosts without a custom icon show your configured terminal's icon.")
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+        }
+
+        QQC2.Label {
+            text: i18n("Local Hosts")
+            font.bold: true
+            font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.1
+        }
+
+        QQC2.Label {
+            text: i18n("Hosts with HostName localhost, 127.0.0.1, or ::1 are treated as local — clicking opens a terminal directly without SSH, and custom commands run locally.")
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+        }
+
+        QQC2.Label {
+            text: i18n("Other Notes")
+            font.bold: true
+            font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.1
+        }
+
+        QQC2.Label {
+            text: i18n("• Wildcard hosts (e.g. Host *) are automatically skipped.\n• The # Icon, # MAC, and # Command directives apply to the next Host entry only.\n• # Command can be repeated multiple times to add several commands to one host.\n• Wake-on-LAN requires the 'wakeonlan' package to be installed.")
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }
