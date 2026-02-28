@@ -1,7 +1,7 @@
 # GroupStart Servers
 # Icon server-database
 # MAC aa:bb:cc:dd:ee:ff
-# Command restart-nginx
+# Command [Restart Nginx] restart-nginx
 # Command check-logs
 Host main-server
     HostName 192.168.1.100

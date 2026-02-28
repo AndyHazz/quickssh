@@ -501,7 +501,7 @@ describe('parseConfig', () => {
         expect(mainServer.user).toBe('admin')
         expect(mainServer.icon).toBe('server-database')
         expect(mainServer.mac).toBe('aa:bb:cc:dd:ee:ff')
-        expect(mainServer.commands).toEqual([{ name: '', cmd: 'restart-nginx' }, { name: '', cmd: 'check-logs' }])
+        expect(mainServer.commands).toEqual([{ name: 'Restart Nginx', cmd: 'restart-nginx' }, { name: '', cmd: 'check-logs' }])
 
         const backupServer = result.groups[0].hosts[1]
         expect(backupServer.host).toBe('backup-server')
