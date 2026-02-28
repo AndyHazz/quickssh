@@ -1,4 +1,4 @@
-# QuickSSH Test Coverage Analysis
+# SquiSSH Test Coverage Analysis
 
 ## Current State
 

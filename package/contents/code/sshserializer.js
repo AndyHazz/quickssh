@@ -4,7 +4,7 @@
  * Serialize grouped host model back to SSH config text.
  *
  * Reconstructs the full SSH config file from the in-memory model,
- * preserving all QuickSSH directives (#GroupStart, #Icon, #MAC, #Command)
+ * preserving all SquiSSH directives (#GroupStart, #Icon, #MAC, #Command)
  * and additional SSH options stored in each host's options[] array.
  *
  * Also writes rawBlocks (wildcard hosts, Match blocks, Include directives)
@@ -37,7 +37,7 @@ function serializeConfig(groups, rawBlocks) {
         for (var j = 0; j < group.hosts.length; j++) {
             var host = group.hosts[j]
 
-            // QuickSSH directives (before Host line)
+            // SquiSSH directives (before Host line)
             if (host.icon && host.icon !== "network-server") {
                 lines.push("# Icon " + host.icon)
             }

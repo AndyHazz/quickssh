@@ -189,7 +189,7 @@ describe('serializeConfig', () => {
         expect(result).not.toContain("# GroupEnd")
     })
 
-    // ── QuickSSH directives ──────────────────────────────────────────
+    // ── SquiSSH directives ──────────────────────────────────────────
 
     it('writes Icon directive for non-default icons', () => {
         const groups = [{
@@ -345,7 +345,7 @@ describe('serializeConfig', () => {
 
     // ── Directive ordering ───────────────────────────────────────────
 
-    it('writes QuickSSH directives before Host line', () => {
+    it('writes SquiSSH directives before Host line', () => {
         const groups = [{
             name: "",
             hosts: [{
@@ -533,7 +533,7 @@ describe('serializeConfig', () => {
         expect(host.options).toEqual([{ key: 'ProxyJump', value: 'bastion' }])
     })
 
-    it('round-trips a grouped config with QuickSSH directives', () => {
+    it('round-trips a grouped config with SquiSSH directives', () => {
         const input = [
             '# GroupStart Servers',
             '',
