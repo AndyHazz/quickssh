@@ -397,7 +397,7 @@ PlasmoidItem {
         var escaped = command.replace(/'/g, "'\\''")
         var cmd
         if (host && isLocalHost(host.hostname)) {
-            cmd = plasmoid.configuration.terminalCommand + " sh -c '" + escaped + "'"
+            cmd = plasmoid.configuration.terminalCommand + " $SHELL -lc '" + escaped + "'"
         } else {
             cmd = plasmoid.configuration.terminalCommand + " ssh -t " + hostAlias + " '" + escaped + "'"
         }
