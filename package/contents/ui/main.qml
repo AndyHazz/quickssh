@@ -21,11 +21,11 @@ PlasmoidItem {
     switchWidth: Kirigami.Units.gridUnit * 20
     switchHeight: Kirigami.Units.gridUnit * 14
 
-    Plasmoid.icon: Qt.resolvedUrl("../icons/quickssh.svg")
+    Plasmoid.icon: Qt.resolvedUrl("../icons/squissh.svg")
     Plasmoid.status: PlasmaCore.Types.ActiveStatus
     Plasmoid.backgroundHints: PlasmaCore.Types.DefaultBackground | PlasmaCore.Types.ConfigurableBackground
 
-    toolTipMainText: i18n("Quick SSH")
+    toolTipMainText: i18n("SquiSSH")
     toolTipSubText: {
         var count = hostList.length
         return i18np("%1 host configured", "%1 hosts configured", count)
@@ -73,7 +73,7 @@ PlasmoidItem {
     }
 
     property bool _restoring: false
-    readonly property string _prefsFile: "$HOME/.config/quickssh-prefs.json"
+    readonly property string _prefsFile: "$HOME/.config/squissh-prefs.json"
     property var _cfgSnapshot: JSON.stringify(plasmoid.configuration)
     on_CfgSnapshotChanged: { if (!_restoring) prefsSaveTimer.restart() }
 

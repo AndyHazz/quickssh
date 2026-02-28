@@ -55,13 +55,13 @@ QQC2.ItemDelegate {
                 source: {
                     var icon = itemData.icon || ""
                     if (!icon) return root.terminalIcon
-                    if (icon === "quickssh") return Qt.resolvedUrl("../icons/quickssh.svg")
+                    if (icon === "squissh") return Qt.resolvedUrl("../icons/squissh.svg")
                     if (icon === "terminal") return "utilities-terminal"
                     if (icon.startsWith("~/"))
                         icon = StandardPaths.writableLocation(StandardPaths.HomeLocation) + icon.substring(1)
                     return icon
                 }
-                isMask: itemData.icon === "quickssh"
+                isMask: itemData.icon === "squissh"
             }
         }
 

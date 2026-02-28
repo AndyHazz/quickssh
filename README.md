@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/logo.png" alt="Quick SSH" width="128">
+  <img src="docs/squissh-icon.png" alt="SquiSSH" width="128">
 </p>
 
-<h1 align="center">Quick SSH</h1>
+<h1 align="center">SquiSSH</h1>
 
 <p align="center">
   A KDE Plasma 6 system tray widget for quick SSH connections from your <code>~/.ssh/config</code>.
@@ -13,9 +13,11 @@
 ## Features
 
 - Parses `~/.ssh/config` automatically — no duplicate configuration
+- **Built-in SSH config editor** with host add/edit/delete and reordering
 - One-click SSH connections in your preferred terminal
 - Host grouping with `#GroupStart` / `#GroupEnd` comments
 - Custom icons per host with `#Icon` directive
+- **Local host support** — hosts with `localhost` / `127.0.0.1` / `::1` open a terminal directly
 - **Connection history** with "Recent" group showing last 24 hours
 - **Wake-on-LAN** via `#MAC` directive (right-click offline hosts)
 - **Per-host custom commands** via `#Command` directive
@@ -25,27 +27,34 @@
 - One-click SFTP file manager access
 - mDNS/Avahi network host discovery
 - Status change notifications
-- Configurable terminal emulator, config path, and ping timeout
+- Auto-detects your terminal emulator's icon for host entries
+- **Config persistence** across widget updates
 
 ## Installation
 
 ### From KDE Store
 
-Search for "Quick SSH" in **Get New Widgets** on your Plasma panel.
+Search for "SquiSSH" in **Get New Widgets** on your Plasma panel.
 
 ### From Source
 
 ```bash
-git clone https://github.com/AndyHazz/quickssh.git
-cd quickssh
-./install.sh
+git clone https://github.com/AndyHazz/squissh.git
+cd squissh
+kpackagetool6 -t Plasma/Applet -i package
 ```
 
-Then right-click your system tray → **Configure System Tray** → enable **Quick SSH**.
+Then right-click your system tray → **Configure System Tray** → enable **SquiSSH**.
+
+To upgrade an existing installation:
+
+```bash
+kpackagetool6 -t Plasma/Applet -u package
+```
 
 ## SSH Config Format
 
-Quick SSH reads your standard `~/.ssh/config` and adds optional directives via comments:
+SquiSSH reads your standard `~/.ssh/config` and adds optional directives via comments:
 
 ```ssh-config
 # GroupStart Production
@@ -91,19 +100,27 @@ Host personal-vps
 
 These are standard SSH comments and won't affect your SSH connections.
 
+You can also manage all of these from the **SSH Hosts** tab in the widget settings.
+
 ## Configuration
 
-Right-click the widget icon → **Configure Quick SSH...**
+Right-click the widget icon → **Configure SquiSSH...**
 
 | Option | Default | Description |
 |--------|---------|-------------|
 | Terminal command | `ghostty -e` | Command prefix to launch SSH (e.g., `konsole -e`, `alacritty -e`) |
 | SSH config file | `~/.ssh/config` | Path to your SSH config |
+| Show search bar | `true` | Show search/filter in the popup |
+| Group hosts | `true` | Group hosts by `#GroupStart` directives |
+| Sort order | Config order | Sort by SSH config order, recently accessed, or alphabetical |
+| Show host icons | `true` | Show icons next to host entries |
+| Show host count badge | `false` | Show host count on tray icon |
 | Show connection status | `true` | Ping hosts to show online/offline dots |
 | Ping timeout | `2` seconds | Timeout for status pings |
-| Show host count badge | `false` | Show host count on tray icon |
-| Discover network hosts | `false` | Find SSH servers on LAN via Avahi/mDNS |
+| Poll interval | `5` minutes | How often to re-check host reachability |
+| Hide unreachable hosts | `false` | Hide hosts that fail ping |
 | Notify on status change | `false` | Desktop notifications when hosts go online/offline |
+| Discover network hosts | `false` | Find SSH servers on LAN via Avahi/mDNS |
 
 ## Requirements
 

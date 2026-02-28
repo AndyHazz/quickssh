@@ -14,7 +14,7 @@ KCMUtils.SimpleKCM {
         spacing: Kirigami.Units.largeSpacing
 
         QQC2.Label {
-            text: i18n("Quick SSH reads your standard SSH config file and displays hosts in the widget. You can manage hosts directly from the SSH Hosts tab, or edit your config file manually using the special comment directives below.")
+            text: i18n("SquiSSH reads your standard SSH config file and displays hosts in the widget. You can manage hosts directly from the SSH Hosts tab, or edit your config file manually using the special comment directives below.")
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }
@@ -29,7 +29,7 @@ KCMUtils.SimpleKCM {
         }
 
         QQC2.Label {
-            text: i18n("These comments can be added to your SSH config file to organize hosts. They are ignored by SSH and only used by Quick SSH.")
+            text: i18n("These comments can be added to your SSH config file to organize hosts. They are ignored by SSH and only used by SquiSSH.")
             font: Kirigami.Theme.smallFont
             color: Kirigami.Theme.disabledTextColor
             Layout.fillWidth: true
@@ -118,7 +118,7 @@ KCMUtils.SimpleKCM {
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 wrapMode: Text.WordWrap
                 textFormat: Text.PlainText
-                text: "# Local terminal with custom commands\n# Icon quickssh\n# Command htop\n# Command btop\n# Command journalctl -f\nHost local\n    HostName localhost\n\n# GroupStart Production Servers\n\n# Icon network-server-database\n# Command tail -f /var/log/syslog\n# Command systemctl status nginx\nHost prod-db\n    HostName 10.0.1.10\n    User admin\n\nHost prod-web\n    HostName 10.0.1.20\n    User deploy\n\n# GroupEnd\n\n# GroupStart Home Lab\n\n# Icon ~/.local/share/icons/quickssh/pihole.png\n# MAC aa:bb:cc:dd:ee:ff\nHost pihole\n    HostName 192.168.1.50\n    User pi\n\nHost nas\n    HostName 192.168.1.100\n    User admin\n\n# GroupEnd\n\n# Hosts outside groups appear under \"Ungrouped\"\nHost personal-vps\n    HostName example.com\n    User me"
+                text: "# Local terminal with custom commands\n# Icon squissh\n# Command htop\n# Command btop\n# Command journalctl -f\nHost local\n    HostName localhost\n\n# GroupStart Production Servers\n\n# Icon network-server-database\n# Command tail -f /var/log/syslog\n# Command systemctl status nginx\nHost prod-db\n    HostName 10.0.1.10\n    User admin\n\nHost prod-web\n    HostName 10.0.1.20\n    User deploy\n\n# GroupEnd\n\n# GroupStart Home Lab\n\n# Icon ~/.local/share/icons/squissh/pihole.png\n# MAC aa:bb:cc:dd:ee:ff\nHost pihole\n    HostName 192.168.1.50\n    User pi\n\nHost nas\n    HostName 192.168.1.100\n    User admin\n\n# GroupEnd\n\n# Hosts outside groups appear under \"Ungrouped\"\nHost personal-vps\n    HostName example.com\n    User me"
             }
         }
 
@@ -131,7 +131,7 @@ KCMUtils.SimpleKCM {
         }
 
         QQC2.Label {
-            text: i18n("• Icon names follow the freedesktop icon naming spec. Browse available icons with the Cuttlefish app (kde-dev-utils).\n• Use 'quickssh' for the built-in Quick SSH icon, or 'terminal' for the generic terminal icon.\n• Hosts without a custom icon show your configured terminal's icon.")
+            text: i18n("• Icon names follow the freedesktop icon naming spec. Browse available icons with the Cuttlefish app (kde-dev-utils).\n• Use 'squissh' for the built-in SquiSSH icon, or 'terminal' for the generic terminal icon.\n• Hosts without a custom icon show your configured terminal's icon.")
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }

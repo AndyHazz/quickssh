@@ -34,7 +34,7 @@ MouseArea {
     Kirigami.Icon {
         id: trayIcon
         anchors.fill: parent
-        source: Qt.resolvedUrl("../icons/quickssh.svg")
+        source: Qt.resolvedUrl("../icons/squissh.svg")
         isMask: true
         active: compactRoot.containsMouse
     }
