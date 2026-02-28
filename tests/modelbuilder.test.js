@@ -7,7 +7,7 @@ function mkHost(alias, opts = {}) {
         host: alias,
         hostname: opts.hostname || alias + '.local',
         user: opts.user || '',
-        icon: opts.icon || 'network-server',
+        icon: opts.icon || '',
         status: opts.status || 'online',
         mac: opts.mac || '',
         commands: opts.commands || []
@@ -40,7 +40,7 @@ describe('hostItem', () => {
             host: 'server1',
             hostname: '10.0.0.1',
             user: 'admin',
-            icon: 'network-server',
+            icon: '',
             status: 'online',
             discovered: false,
             lastConnected: 1234,

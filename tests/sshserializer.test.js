@@ -20,7 +20,7 @@ describe('serializeConfig', () => {
                 user: "admin",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -43,7 +43,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -63,7 +63,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "2222",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -82,7 +82,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "~/.ssh/id_ed25519",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -101,7 +101,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -127,7 +127,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -140,8 +140,8 @@ describe('serializeConfig', () => {
 
     it('does not produce triple blank lines', () => {
         const groups = [
-            { name: "A", hosts: [{ host: "a", hostname: "1.1.1.1", user: "", port: "", identityFile: "", icon: "network-server", mac: "", commands: [], options: [] }] },
-            { name: "B", hosts: [{ host: "b", hostname: "2.2.2.2", user: "", port: "", identityFile: "", icon: "network-server", mac: "", commands: [], options: [] }] }
+            { name: "A", hosts: [{ host: "a", hostname: "1.1.1.1", user: "", port: "", identityFile: "", icon: "", mac: "", commands: [], options: [] }] },
+            { name: "B", hosts: [{ host: "b", hostname: "2.2.2.2", user: "", port: "", identityFile: "", icon: "", mac: "", commands: [], options: [] }] }
         ]
         const result = serializeConfig(groups)
         expect(result).not.toContain("\n\n\n")
@@ -158,7 +158,7 @@ describe('serializeConfig', () => {
                 user: "deploy",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -178,7 +178,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -219,7 +219,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -238,7 +238,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "aa:bb:cc:dd:ee:ff",
                 commands: [],
                 options: []
@@ -257,7 +257,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: ["restart-nginx", "tail -f /var/log/syslog"],
                 options: []
@@ -279,7 +279,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: [
@@ -302,7 +302,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: [
@@ -329,7 +329,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: [
@@ -388,7 +388,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -423,7 +423,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -442,7 +442,7 @@ describe('serializeConfig', () => {
                 user: "",
                 port: "",
                 identityFile: "",
-                icon: "network-server",
+                icon: "",
                 mac: "",
                 commands: [],
                 options: []
@@ -465,7 +465,7 @@ describe('serializeConfig', () => {
                         user: "deploy",
                         port: "",
                         identityFile: "",
-                        icon: "network-server",
+                        icon: "",
                         mac: "",
                         commands: [],
                         options: []
@@ -491,7 +491,7 @@ describe('serializeConfig', () => {
                     user: "me",
                     port: "",
                     identityFile: "",
-                    icon: "network-server",
+                    icon: "",
                     mac: "",
                     commands: [],
                     options: []
@@ -569,7 +569,7 @@ describe('serializeConfig', () => {
 
         const backup = parsed2.groups[0].hosts[1]
         expect(backup.host).toBe('backup-server')
-        expect(backup.icon).toBe('network-server')
+        expect(backup.icon).toBe('')
         expect(backup.mac).toBe('')
     })
 

@@ -143,7 +143,7 @@ KCMUtils.SimpleKCM {
         h.user = userField.text
         h.port = portField.text
         h.identityFile = identityFileField.text
-        h.icon = iconField.text || "network-server"
+        h.icon = iconField.text
         h.mac = macField.text
 
         // Commands
@@ -223,7 +223,7 @@ KCMUtils.SimpleKCM {
             user: "",
             port: "",
             identityFile: "",
-            icon: "network-server",
+            icon: "",
             status: "unknown",
             mac: "",
             commands: [],
@@ -567,7 +567,7 @@ KCMUtils.SimpleKCM {
                 id: iconField
                 Kirigami.FormData.label: i18n("Icon:")
                 Layout.fillWidth: true
-                text: currentHost ? (currentHost.icon !== "network-server" ? currentHost.icon : "") : ""
+                text: currentHost ? currentHost.icon : ""
                 placeholderText: "network-server"
                 onTextEdited: markDirty()
             }

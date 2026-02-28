@@ -36,7 +36,7 @@ describe('parseConfig', () => {
         expect(host.user).toBe('admin')
         expect(host.port).toBe('')
         expect(host.identityFile).toBe('')
-        expect(host.icon).toBe('network-server')
+        expect(host.icon).toBe('')
         expect(host.status).toBe('unknown')
         expect(host.mac).toBe('')
         expect(host.commands).toEqual([])
@@ -292,12 +292,12 @@ describe('parseConfig', () => {
         ].join('\n')
         const result = parseConfig(input)
         expect(result.groups[0].hosts[0].icon).toBe('server-database')
-        expect(result.groups[0].hosts[1].icon).toBe('network-server')
+        expect(result.groups[0].hosts[1].icon).toBe('')
     })
 
     it('uses default icon when no Icon directive', () => {
         const result = parseConfig('Host plain\n  HostName 10.0.0.1')
-        expect(result.groups[0].hosts[0].icon).toBe('network-server')
+        expect(result.groups[0].hosts[0].icon).toBe('')
     })
 
     // ── MAC directive ────────────────────────────────────────────────
@@ -390,7 +390,7 @@ describe('parseConfig', () => {
         expect(first.icon).toBe('custom-icon')
         expect(first.mac).toBe('11:22:33:44:55:66')
         expect(first.commands).toEqual(['do-thing'])
-        expect(second.icon).toBe('network-server')
+        expect(second.icon).toBe('')
         expect(second.mac).toBe('')
         expect(second.commands).toEqual([])
     })
@@ -473,7 +473,7 @@ describe('parseConfig', () => {
 
         const backupServer = result.groups[0].hosts[1]
         expect(backupServer.host).toBe('backup-server')
-        expect(backupServer.icon).toBe('network-server')
+        expect(backupServer.icon).toBe('')
         expect(backupServer.mac).toBe('')
         expect(backupServer.commands).toEqual([])
 
@@ -646,7 +646,7 @@ describe('parseConfig', () => {
         const result = parseConfig(input)
         const host = result.groups[0].hosts[0]
         // Pending directives were reset, not applied to myserver
-        expect(host.icon).toBe('network-server')
+        expect(host.icon).toBe('')
         expect(host.mac).toBe('')
         expect(host.commands).toEqual([])
     })

@@ -333,7 +333,7 @@ PlasmoidItem {
     function connectToHost(hostAlias) {
         var host = findHost(hostAlias)
         var cmd = (host && isLocalHost(host.hostname))
-            ? plasmoid.configuration.terminalCommand
+            ? plasmoid.configuration.terminalCommand.replace(/\s+(-e|--|--command)\s*$/, "")
             : plasmoid.configuration.terminalCommand + " ssh " + hostAlias
         launcher.disconnectSource(cmd)
         launcher.connectSource(cmd)

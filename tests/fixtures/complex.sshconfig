@@ -7,7 +7,6 @@ Host main-server
     HostName 192.168.1.100
     User admin
 
-# Icon network-server
 Host backup-server
     HostName 192.168.1.101
     User backup
