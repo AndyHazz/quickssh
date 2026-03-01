@@ -9,7 +9,7 @@
 <h1 align="center">SquiSSH</h1>
 
 <p align="center">
-  A KDE Plasma 6 system tray widget for quick SSH connections from your <code>~/.ssh/config</code>.
+  A KDE Plasma 6 system tray widget for Super QUIck SSH connections from your <code>~/.ssh/config</code>.
 </p>
 
 <p align="center">
