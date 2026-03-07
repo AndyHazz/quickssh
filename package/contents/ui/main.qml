@@ -36,10 +36,13 @@ PlasmoidItem {
         try {
             var cached = JSON.parse(plasmoid.configuration.cachedHosts || "[]")
             if (cached.length > 0) {
-                // Reset stale statuses — checkAllStatus() will refresh them
+                var statuses = {}
+                try { statuses = JSON.parse(plasmoid.configuration.cachedStatuses || "{}") } catch(e2) {}
                 for (var i = 0; i < cached.length; i++)
-                    for (var j = 0; j < cached[i].hosts.length; j++)
-                        cached[i].hosts[j].status = "unknown"
+                    for (var j = 0; j < cached[i].hosts.length; j++) {
+                        var h = cached[i].hosts[j]
+                        h.status = statuses[h.hostname] || "unknown"
+                    }
                 return cached
             }
         } catch(e) {}
@@ -151,7 +154,8 @@ PlasmoidItem {
         var keys = ["terminalCommand", "sshConfigPath", "showStatus", "pingTimeout",
                     "showBadge", "hideUnreachable", "enableGrouping", "sortOrder",
                     "enableSearch", "showIcons", "notifyOnStatusChange", "pollInterval",
-                    "discoverHosts", "favorites", "collapsedGroups", "connectionHistory"]
+                    "discoverHosts", "favorites", "collapsedGroups", "connectionHistory",
+                    "cachedStatuses"]
         var config = {}
         for (var i = 0; i < keys.length; i++) config[keys[i]] = cfg[keys[i]]
         var encoded = Qt.btoa(JSON.stringify(config))
@@ -268,13 +272,11 @@ PlasmoidItem {
         var timeout = plasmoid.configuration.pingTimeout || 2
         var queue = []
         for (var i = 0; i < hostList.length; i++) {
-            hostList[i].status = "checking"
             if (ShellUtil.isSafeHostname(hostList[i].hostname)) {
                 queue.push("ping -c 1 -W " + timeout + " " + hostList[i].hostname)
             }
         }
         root.pingQueue = queue
-        hostListChanged()
         pingStagger.restart()
     }
 
@@ -294,7 +296,7 @@ PlasmoidItem {
             // Send notification on status change
             if (plasmoid.configuration.notifyOnStatusChange) {
                 var prev = previousStatuses[hostname]
-                if (prev && prev !== status && prev !== "checking" && status !== "checking") {
+                if (prev && prev !== status) {
                     statusNotification.title = hostName
                     statusNotification.text = status === "online"
                         ? i18n("%1 is now online", hostName)
@@ -312,6 +314,15 @@ PlasmoidItem {
         id: statusDebounce
         interval: 200
         onTriggered: {
+            // Persist current statuses so next session starts with last known state
+            var map = {}
+            for (var i = 0; i < hostList.length; i++) {
+                var s = hostList[i].status
+                if (s === "online" || s === "offline")
+                    map[hostList[i].hostname] = s
+            }
+            plasmoid.configuration.cachedStatuses = JSON.stringify(map)
+
             // Only rebuild the model when popup is visible; otherwise let changes accumulate
             if (root.expanded) {
                 root.groupedHosts = root.groupedHosts.slice()

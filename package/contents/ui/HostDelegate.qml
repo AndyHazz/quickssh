@@ -34,19 +34,11 @@ QQC2.ItemDelegate {
                     switch (itemData.status) {
                         case "online": return Kirigami.Theme.positiveTextColor
                         case "offline": return Kirigami.Theme.negativeTextColor
-                        case "checking": return Kirigami.Theme.disabledTextColor
                         default: return "transparent"
                     }
                 }
                 border.width: itemData.status === "offline" ? 1 : 0
                 border.color: Kirigami.Theme.negativeTextColor
-
-                SequentialAnimation on opacity {
-                    running: itemData.status === "checking"
-                    loops: Animation.Infinite
-                    NumberAnimation { to: 0.3; duration: 500 }
-                    NumberAnimation { to: 1.0; duration: 500 }
-                }
             }
 
             Item {

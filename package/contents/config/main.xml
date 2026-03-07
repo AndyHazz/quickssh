@@ -62,6 +62,9 @@
     <entry name="cachedHosts" type="String">
       <default></default>
     </entry>
+    <entry name="cachedStatuses" type="String">
+      <default>{}</default>
+    </entry>
     <entry name="sshConfigText" type="String">
       <default></default>
     </entry>
