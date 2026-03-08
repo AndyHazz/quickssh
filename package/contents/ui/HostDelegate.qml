@@ -119,6 +119,20 @@ QQC2.ItemDelegate {
             }
 
             QQC2.ToolButton {
+                visible: hostDelegate.hovered && !root.isLocalHost(itemData.hostname)
+                Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                Layout.rightMargin: -Kirigami.Units.mediumSpacing
+                icon.name: "folder"
+                icon.width: Kirigami.Units.iconSizes.small
+                icon.height: Kirigami.Units.iconSizes.small
+                QQC2.ToolTip.text: i18n("Open in File Manager")
+                QQC2.ToolTip.visible: hovered
+                QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+                onClicked: root.openSftp(itemData.host, itemData.user, itemData.hostname)
+            }
+
+            QQC2.ToolButton {
                 visible: hostDelegate.hovered
                 Layout.preferredWidth: Kirigami.Units.iconSizes.medium
                 Layout.preferredHeight: Kirigami.Units.iconSizes.medium
@@ -215,13 +229,6 @@ QQC2.ItemDelegate {
         active: false
         sourceComponent: QQC2.Menu {
             onClosed: hostDelegate.menuClosedTime = Date.now()
-            QQC2.MenuItem {
-                text: i18n("Open in File Manager")
-                icon.name: "folder"
-                visible: !root.isLocalHost(itemData.hostname)
-                onTriggered: root.openSftp(itemData.host, itemData.user, itemData.hostname)
-            }
-
             QQC2.MenuItem {
                 icon.name: root.isFavorite(itemData.host) ? "bookmark-remove" : "bookmark-new"
                 text: root.isFavorite(itemData.host) ? i18n("Unpin from Top") : i18n("Pin to Top")
